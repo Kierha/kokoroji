@@ -1,4 +1,7 @@
-require("dotenv").config(); // Charge automatiquement .env à la racine, ou rien si absent
+if (process.env.CI !== "true") {
+  // En local UNIQUEMENT, charge .env
+  require("dotenv").config();
+}
 
 const { createClient } = require("@supabase/supabase-js");
 
