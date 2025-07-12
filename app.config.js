@@ -32,6 +32,8 @@ export default {
       favicon: "./assets/favicon.png",
     },
     extra: {
+      EXPO_PUBLIC_SUPABASE_URL: process.env.EXPO_PUBLIC_SUPABASE_URL,
+      EXPO_PUBLIC_SUPABASE_KEY: process.env.EXPO_PUBLIC_SUPABASE_KEY,
       eas: {
         projectId: "4a120cfd-4230-4cb7-ade3-9de3b893f5ca",
       },
