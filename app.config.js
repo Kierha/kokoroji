@@ -15,7 +15,7 @@ export default {
     },
     ios: {
       supportsTablet: true,
-      bundleIdentifier: "com.kierhann.kokorojiapp",
+      bundleIdentifier: "com.korosphere.kokorojiapp",
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
       },
@@ -26,14 +26,14 @@ export default {
         backgroundColor: "#ffffff",
       },
       edgeToEdgeEnabled: true,
-      package: "com.kierhann.kokorojiapp",
+      package: "com.korosphere.kokorojiapp",
     },
     web: {
       favicon: "./assets/favicon.png",
     },
     extra: {
       eas: {
-        projectId: "949451b5-7183-4435-a7e6-ecbb48871903",
+        projectId: "4a120cfd-4230-4cb7-ade3-9de3b893f5ca",
       },
     },
   },
