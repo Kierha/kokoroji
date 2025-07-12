@@ -16,5 +16,8 @@ export default [
         afterEach: "readonly",
       },
     },
+    rules: {
+      "expo/no-dynamic-env-var": "off",
+    },
   },
 ];
