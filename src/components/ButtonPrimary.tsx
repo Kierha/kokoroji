@@ -4,7 +4,7 @@
  * Gère les états désactivé et chargement (spinner).
  */
 import React from "react";
-import { TouchableOpacity, Text, StyleSheet, GestureResponderEvent, ActivityIndicator } from "react-native";
+import { TouchableOpacity, Text, StyleSheet, GestureResponderEvent, ActivityIndicator, ViewStyle, TextStyle } from "react-native";
 import { colors } from "../styles/colors";
 
 interface ButtonPrimaryProps {
@@ -12,6 +12,9 @@ interface ButtonPrimaryProps {
     onPress: (event: GestureResponderEvent) => void;
     disabled?: boolean;
     loading?: boolean;
+    buttonStyle?: ViewStyle | ViewStyle[];  // Ajout pour styles personnalisés
+    textStyle?: TextStyle | TextStyle[];   // Ajout pour styles personnalisés
+    testID?: string; // Ajout pour support test natif
 }
 
 /**
@@ -21,6 +24,9 @@ interface ButtonPrimaryProps {
  * @param onPress Callback appelée lors du clic
  * @param disabled Désactive le bouton si true
  * @param loading Affiche un indicateur de chargement si true
+ * @param buttonStyle Styles supplémentaires pour le container bouton
+ * @param textStyle Styles supplémentaires pour le texte
+ * @param testID Identifiant de test (injection pour test unitaire)
  * @returns JSX.Element
  */
 const ButtonPrimary: React.FC<ButtonPrimaryProps> = ({
@@ -28,25 +34,32 @@ const ButtonPrimary: React.FC<ButtonPrimaryProps> = ({
     onPress,
     disabled = false,
     loading = false,
+    buttonStyle,
+    textStyle,
+    testID,
 }) => {
     return (
         <TouchableOpacity
             style={[
                 styles.button,
                 disabled ? styles.buttonDisabled : null,
-                styles.buttonShadow
+                styles.buttonShadow,
+                buttonStyle
             ]}
             onPress={onPress}
             disabled={disabled || loading}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityState={{ disabled: disabled || loading }}
+            testID={testID} // Injection du testID ici
         >
             {/* Affiche un spinner si loading, sinon le texte du bouton */}
             {loading ? (
                 <ActivityIndicator size="small" color={colors.white} />
             ) : (
-                <Text style={[styles.text, disabled ? styles.textDisabled : null]}>{title}</Text>
+                <Text style={[styles.text, disabled ? styles.textDisabled : null, textStyle]}>
+                    {title}
+                </Text>
             )}
         </TouchableOpacity>
     );

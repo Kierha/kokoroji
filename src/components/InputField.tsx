@@ -1,32 +1,35 @@
 /**
- * Composant InputEmail : champ de saisie d'email avec gestion de l'affichage des erreurs.
+ * Composant InputField : champ de saisie texte générique avec gestion de l'affichage des erreurs.
  * Utilisé dans les formulaires pour garantir la cohérence UX et l’accessibilité.
  */
 import React from "react";
-import { TextInput, StyleSheet, View, Text } from "react-native";
+import { TextInput, StyleSheet, View, Text, TextInputProps } from "react-native";
 import { colors } from "../styles/colors";
 
 /**
- * Champ de saisie d'email avec gestion de l'affichage des erreurs.
+ * Champ de saisie générique avec gestion de l'affichage des erreurs.
  * UX : met en avant l'accessibilité et la clarté des retours utilisateur.
  * @param value Valeur courante du champ
  * @param onChangeText Callback appelée à chaque modification
  * @param placeholder Texte d'aide affiché si vide
  * @param error Message d'erreur à afficher sous le champ
+ * @param ...props Toutes les props TextInput natives supplémentaires (autoCapitalize, keyboardType, etc.)
  * @returns JSX.Element
  */
-interface InputEmailProps {
+export interface InputFieldProps extends TextInputProps {
     value: string;
     onChangeText: (text: string) => void;
     placeholder?: string;
     error?: string;
 }
 
-const InputEmail: React.FC<InputEmailProps> = ({
+const InputField: React.FC<InputFieldProps> = ({
     value,
     onChangeText,
-    placeholder = "Email",
+    placeholder = "",
     error,
+    style,
+    ...props
 }) => {
     return (
         <View style={styles.container}>
@@ -34,16 +37,13 @@ const InputEmail: React.FC<InputEmailProps> = ({
                 style={[
                     styles.input,
                     error ? styles.inputError : null,
+                    style,
                 ]}
                 value={value}
                 onChangeText={onChangeText}
                 placeholder={placeholder}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                textContentType="emailAddress"
-                accessibilityLabel="Champ email"
-                importantForAutofill="yes"
+                // Les props custom du parent sont passées au champ natif
+                {...props}
             />
             {/* Affiche le message d'erreur sous le champ si présent */}
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
@@ -64,12 +64,12 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         fontSize: 16,
         color: colors.darkGrey,
-        width: "100%",           // S'étire sur la largeur du conteneur parent
+        width: "100%",
         backgroundColor: "#fff",
         boxSizing: "border-box" as any, // Pour la version web uniquement
     },
     inputError: {
-        borderColor: colors.pink, // Bordure rose en cas d'erreur
+        borderColor: colors.pink,
     },
     errorText: {
         marginTop: 4,
@@ -78,4 +78,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default InputEmail;
+export default InputField;

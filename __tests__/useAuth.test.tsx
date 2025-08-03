@@ -27,6 +27,8 @@ const { supabase } = require("../src/services/supabaseClient");
 /**
  * Composant utilitaire pour tester la valeur retournée par le hook useAuth.
  * Permet de récupérer l'état du hook dans les tests unitaires.
+ * @param onValue Callback appelée à chaque changement de valeur du hook
+ * @returns null
  */
 function HookTest({ onValue }: { onValue: (value: any) => void }) {
     const value = useAuth();
@@ -43,7 +45,7 @@ describe.skip("useAuth", () => {
 
     /**
      * Vérifie que l'utilisateur est bien récupéré au démarrage du hook.
-     * Permet de garantir la cohérence de l'état utilisateur à l'initialisation.
+     * Simule la récupération de l'utilisateur et l'abonnement aux changements de session.
      */
     it("récupère l'utilisateur au démarrage", async () => {
         supabase.auth.getUser.mockResolvedValue({ data: { user: { id: "1" } } });
@@ -54,7 +56,6 @@ describe.skip("useAuth", () => {
         let hookValue: any;
         await act(async () => {
             render(<HookTest onValue={v => { hookValue = v; }} />);
-            // attend la résolution de la promesse pour simuler l'effet asynchrone
             await Promise.resolve();
         });
 
@@ -63,8 +64,8 @@ describe.skip("useAuth", () => {
     });
 
     /**
-     * Vérifie la mise à jour de l'utilisateur lors d'un changement de session (ex : connexion).
-     * Permet de s'assurer que le hook réagit bien aux événements d'authentification.
+     * Vérifie la mise à jour de l'utilisateur lors d'un changement de session.
+     * Simule un événement SIGNED_IN et vérifie la mise à jour du hook.
      */
     it("met à jour l'utilisateur lors d'un changement de session", async () => {
         let callback: any;
@@ -90,7 +91,7 @@ describe.skip("useAuth", () => {
 
     /**
      * Vérifie la déconnexion de l'utilisateur via la méthode signOut du hook.
-     * Permet de garantir la bonne gestion de la session côté client.
+     * Simule la déconnexion et vérifie la remise à zéro de l'utilisateur.
      */
     it("déconnecte l'utilisateur avec signOut", async () => {
         supabase.auth.getUser.mockResolvedValue({ data: { user: { id: "1" } } });
