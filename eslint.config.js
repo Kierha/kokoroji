@@ -3,7 +3,17 @@ import expoFlat from "eslint-config-expo/flat.js";
 export default [
   ...expoFlat,
   {
-    files: ["**/__tests__/**/*.js", "**/*.test.js", "**/*.spec.js"],
+    files: [
+      "**/__tests__/**/*.js",
+      "**/*.test.js",
+      "**/*.spec.js",
+      "**/__tests__/**/*.ts",
+      "**/*.test.ts",
+      "**/*.spec.ts",
+      "**/__tests__/**/*.tsx",
+      "**/*.test.tsx",
+      "**/*.spec.tsx",
+    ],
     languageOptions: {
       globals: {
         describe: "readonly",
@@ -18,6 +28,7 @@ export default [
     },
     rules: {
       "expo/no-dynamic-env-var": "off",
+      "@typescript-eslint/no-require-imports": "off",
     },
   },
 ];
