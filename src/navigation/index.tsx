@@ -1,9 +1,4 @@
-/**
- * Navigation principale de l’application Kokoroji.
- * Gère l’accès conditionnel aux écrans selon l’état d’authentification utilisateur.
- * Affiche un écran de chargement tant que l’état n’est pas déterminé.
- */
-import React from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAuth } from "../hooks/useAuth";
@@ -11,24 +6,60 @@ import LoginMagicLink from "../screens/LoginMagicLink";
 import HomeScreen from "../screens/HomeScreen";
 import Loader from "../components/Loader";
 import { colors } from "../styles/colors";
+import OnboardingStack from "./onBoardingStack";
+import { isOnboardingDone } from "../services/onboardingService";
 
-const Stack = createNativeStackNavigator();
+export type RootStackParamList = {
+    Login: undefined;
+    Home: undefined;
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 /**
- * Composant racine de navigation conditionnelle.
- * Redirige vers l’accueil si l’utilisateur est connecté, sinon vers la page de connexion.
+ * Composant AppNavigator : navigation principale conditionnelle selon l'état utilisateur et onboarding.
+ * Affiche la stack Login, Home ou Onboarding selon le contexte d'authentification et d'usage.
  * @returns JSX.Element
  */
 const AppNavigator: React.FC = () => {
     const { user, loading } = useAuth();
+    const [onboardingDone, setOnboardingDone] = useState<boolean | null>(null);
 
-    if (loading) {
+    // Vérifie le flag d'onboarding utilisateur à chaque changement d'utilisateur
+    useEffect(() => {
+        if (user) {
+            isOnboardingDone()
+                .then((res) => {
+                    setOnboardingDone(res);
+                })
+                .catch(() => {
+                    setOnboardingDone(false);
+                });
+        } else {
+            setOnboardingDone(null);
+        }
+    }, [user]);
+
+    // Callback appelé à la fin de l'onboarding pour mettre à jour l'état local
+    const handleOnboardingDone = useCallback(() => {
+        setOnboardingDone(true);
+    }, []);
+
+    // Affiche un loader tant que l'état d'authentification ou d'onboarding n'est pas résolu
+    if (loading || (user && onboardingDone === null)) {
         return <Loader />;
     }
 
+    // Affiche la stack appropriée selon l'état utilisateur et onboarding
     return (
         <NavigationContainer>
-            {user ? (
+            {!user && (
+                <Stack.Navigator screenOptions={{ headerShown: false }}>
+                    <Stack.Screen name="Login" component={LoginMagicLink} />
+                </Stack.Navigator>
+            )}
+
+            {user && onboardingDone && (
                 <Stack.Navigator
                     screenOptions={{
                         headerStyle: { backgroundColor: colors.mediumBlue },
@@ -37,14 +68,10 @@ const AppNavigator: React.FC = () => {
                 >
                     <Stack.Screen name="Home" component={HomeScreen} />
                 </Stack.Navigator>
-            ) : (
-                <Stack.Navigator>
-                    <Stack.Screen
-                        name="Login"
-                        component={LoginMagicLink}
-                        options={{ headerShown: false }}
-                    />
-                </Stack.Navigator>
+            )}
+
+            {user && !onboardingDone && (
+                <OnboardingStack onOnboardingDone={handleOnboardingDone} />
             )}
         </NavigationContainer>
     );

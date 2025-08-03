@@ -37,5 +37,6 @@ export default {
         projectId: "4a120cfd-4230-4cb7-ade3-9de3b893f5ca",
       },
     },
+    plugins: ["expo-sqlite"],
   },
 };

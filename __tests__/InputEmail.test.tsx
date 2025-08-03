@@ -4,7 +4,7 @@
  */
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
-import InputEmail from "../src/components/InputEmail";
+import InputEmail from "../src/components/InputField";
 
 describe("InputEmail", () => {
     /**
@@ -39,7 +39,6 @@ describe("InputEmail", () => {
 
     /**
      * Vérifie que la fonction onChangeText est appelée lors d'une modification de la saisie.
-     * Permet de s'assurer que le composant remonte bien la nouvelle valeur.
      */
     it("déclenche onChangeText", () => {
         const onChangeText = jest.fn();

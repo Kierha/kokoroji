@@ -8,7 +8,6 @@ import { mapMagicLinkError } from "../src/utils/errorMessages";
 describe("mapMagicLinkError", () => {
     /**
      * Vérifie la traduction d'une erreur technique précise en message utilisateur compréhensible.
-     * Permet d'améliorer l'expérience utilisateur en affichant un message adapté.
      */
     it("traduit l'erreur Supabase en français", () => {
         expect(

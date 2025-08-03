@@ -2,11 +2,13 @@
  * Écran LoginMagicLink : permet à l’utilisateur de demander un lien magique pour se connecter.
  * Gère la validation du formulaire, l’affichage des erreurs et le feedback utilisateur.
  * UX : animation d’arrivée du logo, feedback immédiat, accessibilité renforcée.
+ * Inclut un bouton de connexion fictive (bypass dev) pour accélérer les tests en local.
+ * @returns JSX.Element
  */
 import React, { useState, useRef, useEffect } from "react";
 import { View, StyleSheet, Platform, Alert, Text, Animated } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import InputEmail from "../components/InputEmail";
+import InputEmail from "../components/InputField";
 import ButtonPrimary from "../components/ButtonPrimary";
 import ErrorMessage from "../components/CompErrorMessage";
 import { colors } from "../styles/colors";
@@ -14,16 +16,20 @@ import { sendMagicLink } from "../services/authService";
 import { isValidEmail } from "../utils/email";
 import { mapMagicLinkError } from "../utils/errorMessages";
 import KoroLogo from "../assets/kokoroji-simple.png";
+import { useAuth } from "../hooks/useAuth"; // <-- Import du hook custom pour le bypass dev
+import Footer from "../components/Footer"; // <-- On importe le Footer
 
 /**
  * Composant de formulaire de connexion par Magic Link.
  * Valide l’email, gère l’état de chargement et affiche les erreurs ou le succès.
+ * Ajoute un bouton de connexion dev (__DEV__) pour faciliter les tests onboarding hors prod.
  * @returns JSX.Element
  */
 const LoginMagicLink: React.FC = () => {
     const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const { signInDevUser } = useAuth(); // <-- Méthode de connexion fictive
 
     // Animation d'arrivée du logo
     const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -44,9 +50,12 @@ const LoginMagicLink: React.FC = () => {
         ]).start();
     }, [fadeAnim, translateY]);
 
+    /**
+     * Handler d’envoi du magic link après validation front.
+     * Valide l'email, gère l'état de chargement et affiche le feedback utilisateur.
+     */
     const handleSendMagicLink = async () => {
         setError("");
-        // Validation front : on n'appelle jamais Supabase si l'email est invalide
         if (!isValidEmail(email)) {
             setError("Adresse email invalide. Merci de corriger.");
             return;
@@ -56,13 +65,12 @@ const LoginMagicLink: React.FC = () => {
         const { error } = await sendMagicLink(email);
         setLoading(false);
 
-        // Mapping du message d’erreur Supabase (francisé si besoin)
         if (error) {
             setError(mapMagicLinkError(error));
             return;
         }
 
-        // Succès
+        // Succès UX multiplateforme
         if (Platform.OS === "web") {
             window.alert("Un lien magique a été envoyé à votre adresse email. Vérifiez votre boîte de réception.");
         } else {
@@ -110,11 +118,18 @@ const LoginMagicLink: React.FC = () => {
                             loading={loading}
                         />
                         {!!error && <ErrorMessage message={error} />}
+                        {/* Bypass DEV pour test rapide (mobile/web, uniquement en dev) */}
+                        {__DEV__ && (
+                            <View style={{ marginTop: 12 }}>
+                                <ButtonPrimary
+                                    title="Connexion dev (bypass)"
+                                    onPress={signInDevUser}
+                                />
+                            </View>
+                        )}
                     </View>
                 </View>
-                <View style={styles.footer}>
-                    <Text style={styles.footerText}>Kokoroji © 2025 – Tous droits réservés</Text>
-                </View>
+                <Footer />
             </View>
         </SafeAreaView>
     );
@@ -172,17 +187,6 @@ const styles = StyleSheet.create({
         alignItems: "center",
         marginTop: 8,
         marginHorizontal: 12,
-    },
-    footer: {
-        alignItems: "center",
-        width: "100%",
-        marginBottom: 24,
-        backgroundColor: "transparent",
-    },
-    footerText: {
-        fontSize: 12,
-        color: "#92A4AE",
-        opacity: 0.75,
     },
 });
 
