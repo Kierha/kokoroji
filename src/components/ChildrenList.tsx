@@ -1,4 +1,3 @@
-
 import React from "react";
 import { FlatList, Text } from "react-native";
 import { ChildItem } from "./ChildItem";
@@ -10,12 +9,14 @@ import { colors } from "../styles/colors";
  * @property onEdit Callback pour éditer un enfant (par index)
  * @property onDelete Callback pour supprimer un enfant (par index)
  * @property loading Désactive les actions enfants si true
+ * @property readonly Si true, passe tous les enfants en lecture seule
  */
 type ChildrenListProps = {
     items: any[];
-    onEdit: (index: number) => void;
-    onDelete: (index: number) => void;
-    loading: boolean;
+    onEdit?: (index: number) => void;
+    onDelete?: (index: number) => void;
+    loading?: boolean;
+    readonly?: boolean;
 };
 
 /**
@@ -25,9 +26,10 @@ type ChildrenListProps = {
  * @param onEdit Callback pour éditer un enfant
  * @param onDelete Callback pour supprimer un enfant
  * @param loading Désactive les actions enfants si true
+ * @param readonly Masque les actions si true (profil lecture seule)
  * @returns JSX.Element
  */
-export function ChildrenList({ items, onEdit, onDelete, loading }: ChildrenListProps) {
+export function ChildrenList({ items, onEdit, onDelete, loading, readonly }: ChildrenListProps) {
     return (
         <FlatList
             data={items}
@@ -35,9 +37,10 @@ export function ChildrenList({ items, onEdit, onDelete, loading }: ChildrenListP
             renderItem={({ item, index }) => (
                 <ChildItem
                     item={item}
-                    onEdit={() => onEdit(index)}
-                    onDelete={() => onDelete(index)}
+                    onEdit={onEdit ? () => onEdit(index) : undefined}
+                    onDelete={onDelete ? () => onDelete(index) : undefined}
                     loading={loading}
+                    readonly={readonly}
                 />
             )}
             showsVerticalScrollIndicator={items.length > 4}

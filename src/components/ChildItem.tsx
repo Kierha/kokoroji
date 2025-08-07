@@ -1,4 +1,3 @@
-
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -11,6 +10,7 @@ import { format } from "date-fns";
  * @property onEdit Callback pour éditer l'enfant
  * @property onDelete Callback pour supprimer l'enfant
  * @property loading Désactive les actions si true
+ * @property readonly Si true, masque les boutons action (lecture seule)
  */
 type ChildItemProps = {
     item: {
@@ -18,9 +18,10 @@ type ChildItemProps = {
         name: string;
         birthdate: string | Date;
     };
-    onEdit: () => void;
-    onDelete: () => void;
-    loading: boolean;
+    onEdit?: () => void;
+    onDelete?: () => void;
+    loading?: boolean;
+    readonly?: boolean;
 };
 
 /**
@@ -30,9 +31,10 @@ type ChildItemProps = {
  * @param onEdit Callback pour éditer
  * @param onDelete Callback pour supprimer
  * @param loading Désactive les actions si true
+ * @param readonly Masque les actions si true (profil lecture seule)
  * @returns JSX.Element
  */
-export function ChildItem({ item, onEdit, onDelete, loading }: ChildItemProps) {
+export function ChildItem({ item, onEdit, onDelete, loading, readonly }: ChildItemProps) {
     return (
         <View style={styles.childRow}>
             <Text style={{ fontSize: 28, marginRight: 10 }}>{item.avatar}</Text>
@@ -42,26 +44,31 @@ export function ChildItem({ item, onEdit, onDelete, loading }: ChildItemProps) {
                     {format(new Date(item.birthdate), "dd/MM/yyyy")}
                 </Text>
             </View>
-            {/* Bouton édition */}
-            <TouchableOpacity
-                onPress={onEdit}
-                style={[styles.actionIcon, { backgroundColor: "#E9F2FB" }]}
-                disabled={loading}
-                accessibilityRole="button"
-                accessibilityLabel="modifier"
-            >
-                <Ionicons name="pencil" size={18} color={colors.mediumBlue} />
-            </TouchableOpacity>
-            {/* Bouton suppression */}
-            <TouchableOpacity
-                onPress={onDelete}
-                style={[styles.actionIcon, { backgroundColor: "#FCE9E9" }]}
-                disabled={loading}
-                accessibilityRole="button"
-                accessibilityLabel="supprimer"
-            >
-                <Ionicons name="trash" size={18} color="#E57373" />
-            </TouchableOpacity>
+            {/* Actions affichées uniquement si non-readonly */}
+            {!readonly && (
+                <>
+                    {/* Bouton édition */}
+                    <TouchableOpacity
+                        onPress={onEdit}
+                        style={[styles.actionIcon, { backgroundColor: "#E9F2FB" }]}
+                        disabled={loading}
+                        accessibilityRole="button"
+                        accessibilityLabel="modifier"
+                    >
+                        <Ionicons name="pencil" size={18} color={colors.mediumBlue} />
+                    </TouchableOpacity>
+                    {/* Bouton suppression */}
+                    <TouchableOpacity
+                        onPress={onDelete}
+                        style={[styles.actionIcon, { backgroundColor: "#FCE9E9" }]}
+                        disabled={loading}
+                        accessibilityRole="button"
+                        accessibilityLabel="supprimer"
+                    >
+                        <Ionicons name="trash" size={18} color="#E57373" />
+                    </TouchableOpacity>
+                </>
+            )}
         </View>
     );
 }

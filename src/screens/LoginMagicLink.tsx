@@ -2,7 +2,7 @@
  * Écran LoginMagicLink : permet à l’utilisateur de demander un lien magique pour se connecter.
  * Gère la validation du formulaire, l’affichage des erreurs et le feedback utilisateur.
  * UX : animation d’arrivée du logo, feedback immédiat, accessibilité renforcée.
- * Inclut un bouton de connexion fictive (bypass dev) pour accélérer les tests en local.
+ * Inclut un bouton de navigation dev (DEV Auth) pour accéder au mode admin/dev (test rapide en local).
  * @returns JSX.Element
  */
 import React, { useState, useRef, useEffect } from "react";
@@ -16,20 +16,19 @@ import { sendMagicLink } from "../services/authService";
 import { isValidEmail } from "../utils/email";
 import { mapMagicLinkError } from "../utils/errorMessages";
 import KoroLogo from "../assets/kokoroji-simple.png";
-import { useAuth } from "../hooks/useAuth"; // <-- Import du hook custom pour le bypass dev
-import Footer from "../components/Footer"; // <-- On importe le Footer
+import Footer from "../components/Footer"; 
 
 /**
  * Composant de formulaire de connexion par Magic Link.
  * Valide l’email, gère l’état de chargement et affiche les erreurs ou le succès.
- * Ajoute un bouton de connexion dev (__DEV__) pour faciliter les tests onboarding hors prod.
+ * Ajoute un bouton DEV pour naviguer vers la page admin/dev qui propose tous les modes de connexion.
  * @returns JSX.Element
  */
-const LoginMagicLink: React.FC = () => {
+const LoginMagicLink: React.FC<{ navigation: any }> = ({ navigation }) => {
     const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-    const { signInDevUser } = useAuth(); // <-- Méthode de connexion fictive
+
 
     // Animation d'arrivée du logo
     const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -118,15 +117,16 @@ const LoginMagicLink: React.FC = () => {
                             loading={loading}
                         />
                         {!!error && <ErrorMessage message={error} />}
-                        {/* Bypass DEV pour test rapide (mobile/web, uniquement en dev) */}
+                        {/* DEV : accès à la page de modes de connexion dev/admin */}
                         {__DEV__ && (
                             <View style={{ marginTop: 12 }}>
                                 <ButtonPrimary
-                                    title="Connexion dev (bypass)"
-                                    onPress={signInDevUser}
+                                    title="DEV Auth (test, bypass ou login supabase)"
+                                    onPress={() => navigation.navigate("LoginDevScreen")}
                                 />
                             </View>
                         )}
+
                     </View>
                 </View>
                 <Footer />

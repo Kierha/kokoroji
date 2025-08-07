@@ -29,6 +29,15 @@ export default [
     rules: {
       "expo/no-dynamic-env-var": "off",
       "@typescript-eslint/no-require-imports": "off",
+
+      // Ajout de la règle no-unused-vars avec ignore des vars et args prefixés par _
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+        },
+      ],
     },
   },
 ];
