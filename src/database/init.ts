@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS children (
   name TEXT NOT NULL,
   birthdate TEXT NOT NULL,
   avatar TEXT,
+  korocoins INTEGER DEFAULT 0, 
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY(family_id) REFERENCES family(id)
@@ -33,6 +34,23 @@ CREATE TABLE IF NOT EXISTS app_flags (
 );
 `;
 
+const CREATE_LOGS_TABLE = `
+  CREATE TABLE IF NOT EXISTS app_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp TEXT NOT NULL,
+    family_id TEXT NOT NULL,
+    child_ids TEXT,
+    log_type TEXT NOT NULL,
+    level TEXT NOT NULL,
+    context TEXT,
+    details TEXT,
+    ref_id TEXT,
+    is_synced INTEGER DEFAULT 0,
+    device_info TEXT
+  );
+`;
+
+
 /**
  * Tableau de toutes les requêtes de création de schéma à exécuter lors de l'initialisation.
  */
@@ -40,4 +58,5 @@ export const DB_SCHEMA_QUERIES = [
   CREATE_FAMILY_TABLE,
   CREATE_CHILDREN_TABLE,
   CREATE_APP_FLAGS_TABLE,
+  CREATE_LOGS_TABLE,
 ];

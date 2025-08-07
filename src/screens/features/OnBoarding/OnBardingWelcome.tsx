@@ -7,9 +7,9 @@
 import React from "react";
 import { View, Text, StyleSheet, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import ButtonPrimary from "../../components/ButtonPrimary";
-import { colors } from "../../styles/colors";
-import KoroLogo from "../../assets/kokoroji-simple.png";
+import ButtonPrimary from "../../../components/ButtonPrimary";
+import { colors } from "../../../styles/colors";
+import KoroLogo from "../../../assets/kokoroji-simple.png";
 import { useNavigation } from "@react-navigation/native";
 import type { StackNavigationProp } from '@react-navigation/stack';
 

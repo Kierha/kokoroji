@@ -1,13 +1,13 @@
-
 /**
- * Teste l'écran d'accueil d'onboarding (OnBardingWelcome).
+ * Tests unitaires pour l'écran d'accueil d'onboarding (OnBardingWelcome).
  * Vérifie l'affichage des éléments principaux et la navigation.
  */
+
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
-import OnBardingWelcome from "../src/screens/onboarding/OnBardingWelcome";
+import OnBardingWelcome from "../src/screens/features/OnBoarding/OnBardingWelcome";
 
-// Mock navigation
+// Mock navigation pour isoler les tests
 jest.mock('@react-navigation/native', () => ({
     useNavigation: () => ({
         navigate: jest.fn(),
@@ -16,7 +16,7 @@ jest.mock('@react-navigation/native', () => ({
 
 describe("OnBardingWelcome", () => {
     /**
-     * Vérifie l'affichage des éléments principaux de l'écran d'accueil.
+     * Vérifie la présence du logo, titre et message d'accueil.
      */
     it("affiche le logo, le titre et le message", () => {
         const { getByText } = render(<OnBardingWelcome />);
@@ -26,7 +26,7 @@ describe("OnBardingWelcome", () => {
     });
 
     /**
-     * Vérifie la navigation vers l'écran OnboardingFamily au clic sur le bouton principal.
+     * Vérifie la navigation vers OnboardingFamily au clic sur le bouton principal.
      */
     it("navigue vers OnboardingFamily au clic sur le bouton", () => {
         const navigate = jest.fn();

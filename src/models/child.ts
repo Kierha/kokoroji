@@ -16,4 +16,5 @@ export interface Child {
   avatar?: string;
   createdAt?: string;
   updatedAt?: string;
+  korocoins: number;
 }
