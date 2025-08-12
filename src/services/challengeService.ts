@@ -148,7 +148,6 @@ export async function importDefaultChallenges(
   family_id: number,
   challenges: Partial<Defi>[]
 ): Promise<void> {
-  const ts = () => new Date().toISOString().slice(11, 23);
   const db = await getDatabaseAsync();
 
   await db.execAsync("BEGIN TRANSACTION;");

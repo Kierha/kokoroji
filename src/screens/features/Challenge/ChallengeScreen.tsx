@@ -254,7 +254,7 @@ export default function ChallengeScreen() {
     const toggleSelect = (id: number | string) => {
         const n = Number(id);
         const next = new Set(selectedIds);
-        next.has(n) ? next.delete(n) : next.add(n);
+        void (next.has(n) ? next.delete(n) : next.add(n));
         setSelectedIds(next);
     };
 

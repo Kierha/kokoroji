@@ -1,5 +1,9 @@
 /* eslint-env jest */
 
+// Étend jest-native pour les matchers supplémentaires
+import "@testing-library/jest-native/extend-expect";
+import fetch from "node-fetch";
+
 // Sauvegarde des méthodes console originales (une seule fois)
 const originalWarn = console.warn;
 const originalError = console.error;
@@ -44,9 +48,5 @@ if (typeof global.setImmediate === "undefined") {
 
 // Mock global fetch si besoin (évite des erreurs en tests)
 if (typeof global.fetch === "undefined") {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  global.fetch = require("node-fetch");
+  (global as any).fetch = fetch;
 }
-
-// Étend jest-native pour les matchers supplémentaires
-import "@testing-library/jest-native/extend-expect";
