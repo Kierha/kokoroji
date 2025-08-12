@@ -16,6 +16,8 @@ console.warn = (msg?: any, ...args: any[]) => {
       msg.includes("The global process.env.EXPO_OS is not defined") || // Expo OS
       msg.includes("You seem to update the state") ||                  // setState async
       msg.includes("Warning: An update to")                           // Mises à jour inutiles
+      msg.includes("Supabase error") ||
+      msg.includes("SQLite write failed")
     )
   ) {
     return;
