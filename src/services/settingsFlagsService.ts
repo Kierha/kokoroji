@@ -1,10 +1,11 @@
 import { getDatabaseAsync } from "../database/db";
 
-// Clés utilisées dans la table app_flags pour les paramètres de synchronisation
+// Clés utilisées dans la table app_flags pour les paramètres de synchronisation et d'import
 const SYNC_ENABLED_KEY = "sync_enabled";
 const SYNC_STATE_KEY = "sync_state";
 const LAST_SYNC_KEY = "last_sync";
 const LAST_MANUAL_SYNC_KEY = "last_manual_sync";
+const CHALLENGES_IMPORTED_KEY = "challenges_imported"; // Ajout pour import défis par défaut
 
 /**
  * Récupère l'état d'activation de la synchronisation.
@@ -107,5 +108,32 @@ export async function setLastManualSync(ts: number): Promise<void> {
   await db.runAsync(
     `INSERT OR REPLACE INTO app_flags (key, value) VALUES (?, ?);`,
     [LAST_MANUAL_SYNC_KEY, ts.toString()]
+  );
+}
+
+// === FLAGS IMPORT DEFI PAR DÉFAUT ===
+
+/**
+ * Récupère l'état d'import des défis par défaut.
+ * @returns true si déjà importés, false sinon
+ */
+export async function isChallengesImported(): Promise<boolean> {
+  const db = await getDatabaseAsync();
+  const result = await db.getFirstAsync(
+    `SELECT value FROM app_flags WHERE key = ?;`,
+    [CHALLENGES_IMPORTED_KEY]
+  );
+  return result?.value === "1";
+}
+
+/**
+ * Définit l'état d'import des défis par défaut.
+ * @param imported true si import déjà effectué, false sinon
+ */
+export async function setChallengesImported(imported: boolean): Promise<void> {
+  const db = await getDatabaseAsync();
+  await db.runAsync(
+    `INSERT OR REPLACE INTO app_flags (key, value) VALUES (?, ?);`,
+    [CHALLENGES_IMPORTED_KEY, imported ? "1" : "0"]
   );
 }

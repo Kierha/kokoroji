@@ -11,7 +11,7 @@ export default function ChallengeStack() {
             <Stack.Screen
                 name="ChallengeHome"
                 component={ChallengeScreen}
-                options={{ headerTitle: "Challenges" }}
+                options={{ headerShown: false }}
             />
             {/* You can add more screens related to Challenge here */}
         </Stack.Navigator>

@@ -1,14 +1,15 @@
 import React, { useState, useRef } from "react";
 import {
-    SafeAreaView,
     View,
     Text,
     StyleSheet,
     Image,
     ActivityIndicator,
+    StatusBar,
 } from "react-native";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "../../styles/colors";
 import HomeCard from "../../components/HomeCard";
 import Footer from "../../components/Footer";
@@ -109,80 +110,88 @@ export default function HomeScreen() {
     const displayedName = formatName(parentName);
 
     return (
-        <SafeAreaView style={styles.safeArea}>
-            <View style={styles.container}>
-                {/* En-tête avec prénom et solde Koro-coins */}
-                <View style={styles.headerRow}>
-                    <View style={{ flex: 1 }}>
-                        <Text style={styles.welcome}>Bienvenue,</Text>
-                        <Text style={styles.name}>{displayedName} !</Text>
-                    </View>
-                    <View style={styles.coinsWrapper}>
-                        <Image source={require("../../assets/kokoroji-korocoins.png")} style={styles.coinIcon} />
-                        <Text style={styles.coinCount}>{koroCoins}</Text>
-                    </View>
-                </View>
+        <View style={{ flex: 1, backgroundColor: "#eafaff" }}>
+            {/* Harmonise la zone système (Android) */}
+            <StatusBar barStyle="dark-content" backgroundColor="#eafaff" />
 
-                {/* Grille 2x2 de cartes d’accès */}
-                <View style={styles.gridContainer}>
-                    <View style={styles.grid}>
-                        <View style={styles.row}>
-                            <HomeCard
-                                title="Gérer mes défis"
-                                subtitle="Créer, modifier, suivre"
-                                illustration={require("../../assets/kokoroji-gerer-defi.png")}
-                                onPress={() => navigation.navigate("ChallengeStack")}
-                                testID="homecard-defis"
-                                style={styles.card}
-                            />
-                            <HomeCard
-                                title="Démarrer une session"
-                                subtitle="Session rapide ou planifiée"
-                                illustration={require("../../assets/kokoroji-defi.png")}
-                                onPress={() => navigation.navigate("SessionStack")}
-                                testID="homecard-session"
-                                style={styles.card}
-                            />
+            <SafeAreaView style={styles.safeArea} edges={["top"]}>
+                <View style={styles.container}>
+                    <View style={styles.headerRow}>
+                        <View style={{ flex: 1 }}>
+                            <Text style={styles.welcome}>Bienvenue,</Text>
+                            <Text style={styles.name}>{displayedName} !</Text>
                         </View>
-                        <View style={styles.row}>
-                            <HomeCard
-                                title="Mes Koro-coins"
-                                subtitle="Historique & récompenses"
-                                illustration={require("../../assets/kokoroji-korocoins.png")}
-                                onPress={() => navigation.navigate("RewardsStack")}
-                                testID="homecard-coins"
-                                style={styles.card}
-                            />
-                            <HomeCard
-                                title="Profil"
-                                subtitle="Famille, options & support"
-                                illustration={require("../../assets/kokoroji-profil.png")}
-                                onPress={() => navigation.navigate("ProfileStack")}
-                                testID="homecard-profil"
-                                style={styles.card}
-                            />
+                        <View style={styles.coinsWrapper}>
+                            <Image source={require("../../assets/kokoroji-korocoins.png")} style={styles.coinIcon} />
+                            <Text style={styles.coinCount}>{koroCoins}</Text>
                         </View>
                     </View>
-                </View>
 
-                {/* Indicateur de synchronisation automatique */}
-                {syncInProgress && (
-                    <View style={styles.syncLoaderFooter}>
-                        <ActivityIndicator size="small" color={colors.mediumBlue} />
-                        <Text style={styles.syncText}>Synchronisation automatique en cours...</Text>
+                    {/* Grille 2x2 de cartes d’accès */}
+                    <View style={styles.gridContainer}>
+                        <View style={styles.grid}>
+                            <View style={styles.row}>
+                                <HomeCard
+                                    title="Gérer mes défis"
+                                    subtitle="Créer, modifier, suivre"
+                                    illustration={require("../../assets/kokoroji-gerer-defi.png")}
+                                    onPress={() => navigation.navigate("ChallengeStack")}
+                                    testID="homecard-defis"
+                                    style={styles.card}
+                                />
+                                <HomeCard
+                                    title="Démarrer une session"
+                                    subtitle="Session rapide ou planifiée"
+                                    illustration={require("../../assets/kokoroji-defi.png")}
+                                    onPress={() => navigation.navigate("SessionStack")}
+                                    testID="homecard-session"
+                                    style={styles.card}
+                                />
+                            </View>
+                            <View style={styles.row}>
+                                <HomeCard
+                                    title="Mes Koro-coins"
+                                    subtitle="Historique & récompenses"
+                                    illustration={require("../../assets/kokoroji-korocoins.png")}
+                                    onPress={() => navigation.navigate("RewardsStack")}
+                                    testID="homecard-coins"
+                                    style={styles.card}
+                                />
+                                <HomeCard
+                                    title="Profil"
+                                    subtitle="Famille, options & support"
+                                    illustration={require("../../assets/kokoroji-profil.png")}
+                                    onPress={() => navigation.navigate("ProfileStack")}
+                                    testID="homecard-profil"
+                                    style={styles.card}
+                                />
+                            </View>
+                        </View>
                     </View>
-                )}
 
-                {/* Footer */}
+                    {/* Indicateur de synchronisation automatique */}
+                    {syncInProgress && (
+                        <View style={styles.syncLoaderFooter}>
+                            <ActivityIndicator size="small" color={colors.mediumBlue} />
+                            <Text style={styles.syncText}>Synchronisation automatique en cours...</Text>
+                        </View>
+                    )}
+                </View>
+            </SafeAreaView>
+
+            <SafeAreaView edges={["bottom"]} style={styles.safeBottom}>
                 <Footer />
-            </View>
-        </SafeAreaView>
+            </SafeAreaView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
+        backgroundColor: "#eafaff",
+    },
+    safeBottom: {
         backgroundColor: "#eafaff",
     },
     container: {
