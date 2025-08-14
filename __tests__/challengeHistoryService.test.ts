@@ -19,7 +19,7 @@ jest.mock("../src/database/db", () => ({
   getDatabaseAsync: jest.fn(),
 }));
 
-describe("defiHistoryService", () => {
+describe("challengeHistoryService", () => {
   let mockDb: any;
 
   beforeEach(() => {

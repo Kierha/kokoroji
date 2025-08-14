@@ -121,7 +121,7 @@ jest.mock("../src/services/challengeService", () => ({
     deleteChallenge: jest.fn().mockResolvedValue(undefined),
     reactivateChallenges: jest.fn().mockResolvedValue(undefined),
 }));
-jest.mock("../src/services/ChallengeHistoryService", () => ({
+jest.mock("../src/services/challengeHistoryService", () => ({
     getDefiHistory: jest.fn().mockResolvedValue([
         { id: 11, family_id: 1, defi_id: 1, completed_at: "2025-08-08T10:00:00", completed_by: "Parent" },
     ]),
