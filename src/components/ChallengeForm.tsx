@@ -1,3 +1,9 @@
+/**
+ * Formulaire de création ou d’édition d’un défi personnalisé.
+ * Gère la saisie, la validation et la normalisation des champs,
+ * puis déclenche la soumission ou l’annulation.
+ */
+
 import React, { useEffect, useMemo, useState } from "react";
 import {
     Modal,
@@ -33,8 +39,8 @@ type DefiFormProps = {
         location: string;
         description: string;
         duration_min: number;
-        points_default: number; // Koro-Coins
-        photo_required: string; // "Oui" | "Non"
+        points_default: number;
+        photo_required: string;
         age_min: number;
         age_max: number;
     }) => void;
@@ -54,15 +60,25 @@ type DefiFormProps = {
 };
 
 const CATEGORIES = ["Ludique", "Pédagogique"];
-const LOCATIONS = ["Intérieur", "Extérieur"]; // <-- corrigé ici
+const LOCATIONS = ["Intérieur", "Extérieur"];
 const PHOTO_OPTIONS = ["Oui", "Non"];
 
-/* ----------------------------- Helpers ----------------------------- */
-
+/**
+ * Convertit une valeur en chaîne.
+ * @param v Valeur à convertir
+ */
 const toStr = (v: unknown): string => (v == null ? "" : String(v));
+
+/**
+ * Convertit une valeur en chaîne numérique.
+ * @param v Valeur à convertir
+ */
 const toStrNum = (v: unknown): string => (v == null ? "" : String(v));
 
-/** Normalisation simple FR (sans accents, lowercase) */
+/**
+ * Normalise une chaîne en supprimant accents et espaces superflus.
+ * @param s Chaîne à normaliser
+ */
 const norm = (s: string) =>
     s
         .normalize("NFD")
@@ -70,7 +86,10 @@ const norm = (s: string) =>
         .toLowerCase()
         .trim();
 
-/** Canonise les anciennes valeurs pour le champ location */
+/**
+ * Uniformise le champ location pour correspondre aux valeurs attendues.
+ * @param s Valeur de lieu à corriger
+ */
 const canonLocation = (s?: string | null): string => {
     const n = norm(toStr(s));
     if (n === "maison" || n === "interieur") return "Intérieur";
@@ -78,6 +97,14 @@ const canonLocation = (s?: string | null): string => {
     return toStr(s);
 };
 
+/**
+ * Composant modal de formulaire de défi personnalisé.
+ * @param visible Détermine si le formulaire est affiché
+ * @param onSubmit Callback appelée lors de la validation
+ * @param onCancel Callback appelée lors de l’annulation
+ * @param initialValue Valeurs initiales pour l’édition
+ * @param editMode Active le mode édition si vrai
+ */
 export default function DefiForm({
     visible,
     onSubmit,
@@ -85,7 +112,6 @@ export default function DefiForm({
     initialValue,
     editMode = false,
 }: DefiFormProps) {
-    // States (tous en string pour inputs contrôlés)
     const [title, setTitle] = useState<string>("");
     const [category, setCategory] = useState<string>("");
     const [location, setLocation] = useState<string>("");
@@ -96,21 +122,18 @@ export default function DefiForm({
     const [ageMax, setAgeMax] = useState<string>("");
     const [description, setDescription] = useState<string>("");
 
-    // Errors par champ
     const [errors, setErrors] = useState<FieldErrors>({});
-
-    // Info-bulles
     const [info, setInfo] = useState<{ visible: boolean; title: string; message: string }>({
         visible: false,
         title: "",
         message: "",
     });
 
-    // Sync des champs à chaque changement d'initialValue/visible (gère null de SQLite)
+    // Synchronise les valeurs initiales lors de l’ouverture ou d’un changement
     useEffect(() => {
         setTitle(toStr(initialValue?.title));
         setCategory(toStr(initialValue?.category));
-        setLocation(canonLocation(initialValue?.location)); // <-- canonisation ici
+        setLocation(canonLocation(initialValue?.location));
         setPhotoRequired(toStr(initialValue?.photo_required));
         setDurationMin(toStrNum(initialValue?.duration_min));
         setCoins(toStrNum(initialValue?.points_default));
@@ -120,7 +143,7 @@ export default function DefiForm({
         setErrors({});
     }, [initialValue, visible]);
 
-    // Form prêt ?
+    // État de préparation du formulaire
     const isReady = useMemo<boolean>(() => {
         const v: ChallengeFormValues = {
             title,
@@ -138,11 +161,14 @@ export default function DefiForm({
 
     const openInfo = (t: string, m: string) => setInfo({ visible: true, title: t, message: m });
 
+    /**
+     * Valide le formulaire et envoie les données normalisées.
+     */
     const handleSubmit = () => {
         const v: ChallengeFormValues = {
             title,
             category,
-            location: canonLocation(location), // <-- sécurité à la soumission
+            location: canonLocation(location),
             photo_required: photoRequired,
             duration_min: durationMin,
             points_default: coins,
@@ -163,9 +189,11 @@ export default function DefiForm({
     return (
         <Modal visible={visible} animationType="slide" transparent onRequestClose={onCancel}>
             <View style={styles.overlay}>
-                <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.kav}>
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === "ios" ? "padding" : undefined}
+                    style={styles.kav}
+                >
                     <View style={styles.container}>
-                        {/* Close (rouge) */}
                         <TouchableOpacity
                             onPress={onCancel}
                             style={styles.closeBtn}
@@ -175,14 +203,17 @@ export default function DefiForm({
                             <Ionicons name="close" size={20} color={colors.danger ?? "#d9534f"} />
                         </TouchableOpacity>
 
-                        <Text style={styles.title}>{editMode ? "Modifier le défi" : "Nouveau défi"}</Text>
+
+                        <Text style={styles.title}>
+                            {editMode ? "Modifier le défi" : "Nouveau défi"}
+                        </Text>
 
                         <ScrollView
                             keyboardShouldPersistTaps="handled"
                             contentContainerStyle={{ paddingBottom: 12 }}
                             showsVerticalScrollIndicator={false}
                         >
-                            {/* Titre */}
+                            {/* Champs du formulaire */}
                             <LabeledField label="Titre du défi *" error={errors.title}>
                                 <TextInput
                                     style={[styles.input, errors.title && styles.inputError]}
@@ -194,17 +225,24 @@ export default function DefiForm({
                                 />
                             </LabeledField>
 
-                            {/* Catégorie */}
                             <LabeledField label="Catégorie *" error={errors.category}>
-                                <ChipGroup options={CATEGORIES} selected={category} onSelect={setCategory} invalid={!!errors.category} />
+                                <ChipGroup
+                                    options={CATEGORIES}
+                                    selected={category}
+                                    onSelect={setCategory}
+                                    invalid={!!errors.category}
+                                />
                             </LabeledField>
 
-                            {/* Lieu */}
                             <LabeledField label="Lieu *" error={errors.location}>
-                                <ChipGroup options={LOCATIONS} selected={location} onSelect={setLocation} invalid={!!errors.location} />
+                                <ChipGroup
+                                    options={LOCATIONS}
+                                    selected={location}
+                                    onSelect={setLocation}
+                                    invalid={!!errors.location}
+                                />
                             </LabeledField>
 
-                            {/* Photo requise */}
                             <LabeledField label="Photo requise *" error={errors.photo_required}>
                                 <ChipGroup
                                     options={PHOTO_OPTIONS}
@@ -214,14 +252,13 @@ export default function DefiForm({
                                 />
                             </LabeledField>
 
-                            {/* Durée estimée */}
                             <LabeledField
                                 label="Durée estimée (min) *"
                                 error={errors.duration_min}
                                 info={() =>
                                     openInfo(
                                         "Durée estimée",
-                                        "Indiquez une estimation en minutes. Nous l’utilisons pour vous suggérer des défis qui rentrent dans le temps dont vous disposez (ex. 10 min avant le dîner)."
+                                        "Indiquez une estimation en minutes pour filtrer les défis selon le temps disponible."
                                     )
                                 }
                             >
@@ -236,14 +273,13 @@ export default function DefiForm({
                                 />
                             </LabeledField>
 
-                            {/* Montant Koro-Coins */}
                             <LabeledField
                                 label="Récompense (Koro-Coins) *"
                                 error={errors.points_default}
                                 info={() =>
                                     openInfo(
                                         "Koro-Coins",
-                                        "Nombre de Koro-Coins gagnés quand le défi est réussi. Votre enfant pourra les échanger contre des récompenses que vous aurez définies."
+                                        "Montant de la récompense en Koro-Coins attribuée après réussite du défi."
                                     )
                                 }
                             >
@@ -258,7 +294,6 @@ export default function DefiForm({
                                 />
                             </LabeledField>
 
-                            {/* Ages */}
                             <View style={{ flexDirection: "row", gap: 10 }}>
                                 <View style={{ flex: 1 }}>
                                     <LabeledField
@@ -267,7 +302,7 @@ export default function DefiForm({
                                         info={() =>
                                             openInfo(
                                                 "Âge minimum",
-                                                "À partir de quel âge ce défi convient. Nous nous en servons pour ne proposer que des défis adaptés aux enfants présents."
+                                                "Âge à partir duquel le défi est adapté."
                                             )
                                         }
                                     >
@@ -289,7 +324,7 @@ export default function DefiForm({
                                         info={() =>
                                             openInfo(
                                                 "Âge maximum",
-                                                "Jusqu’à quel âge ce défi reste pertinent. Évite de proposer ce défi aux plus grands si ce n’est plus adapté."
+                                                "Âge jusqu’auquel le défi reste pertinent."
                                             )
                                         }
                                     >
@@ -306,29 +341,36 @@ export default function DefiForm({
                                 </View>
                             </View>
 
-                            {/* Description */}
                             <LabeledField label="Description *" error={errors.description}>
                                 <TextInput
-                                    style={[styles.input, { minHeight: 64 }, errors.description && styles.inputError]}
+                                    style={[
+                                        styles.input,
+                                        { minHeight: 64 },
+                                        errors.description && styles.inputError,
+                                    ]}
                                     placeholder="Détails utiles pour l’enfant et le parent…"
                                     placeholderTextColor="#b7c9d8"
                                     value={description}
-                                    onChangeText={(t: string) => setDescription(t.slice(0, DESC_MAX))}
+                                    onChangeText={(t: string) =>
+                                        setDescription(t.slice(0, DESC_MAX))
+                                    }
                                     multiline
                                     maxLength={DESC_MAX}
                                 />
                             </LabeledField>
                         </ScrollView>
 
-                        {/* CTA unique */}
                         <View style={{ marginTop: 10 }}>
-                            <ButtonPrimary title={editMode ? "Enregistrer" : "Créer"} onPress={handleSubmit} disabled={!isReady} />
+                            <ButtonPrimary
+                                title={editMode ? "Enregistrer" : "Créer"}
+                                onPress={handleSubmit}
+                                disabled={!isReady}
+                            />
                         </View>
                     </View>
                 </KeyboardAvoidingView>
             </View>
 
-            {/* Info popover via AppAlertModal */}
             <AppAlertModal
                 visible={info.visible}
                 title={info.title}
@@ -340,8 +382,9 @@ export default function DefiForm({
     );
 }
 
-/* ---------------------- Présentation interne ---------------------- */
-
+/**
+ * Affiche un champ avec label, éventuelle icône d’info et message d’erreur.
+ */
 function LabeledField({
     label,
     children,
@@ -357,13 +400,18 @@ function LabeledField({
         <View style={{ marginBottom: 12 }}>
             <View style={styles.fieldHeader}>
                 <Text style={styles.fieldLabel}>{label}</Text>
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
-                    {info && (
-                        <TouchableOpacity onPress={info} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
-                            <Ionicons name="information-circle-outline" size={18} color={colors.mediumBlue} />
-                        </TouchableOpacity>
-                    )}
-                </View>
+                {info && (
+                    <TouchableOpacity
+                        onPress={info}
+                        hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                    >
+                        <Ionicons
+                            name="information-circle-outline"
+                            size={18}
+                            color={colors.mediumBlue}
+                        />
+                    </TouchableOpacity>
+                )}
             </View>
             {children}
             {!!error && <Text style={styles.errorText}>{error}</Text>}
@@ -371,6 +419,9 @@ function LabeledField({
     );
 }
 
+/**
+ * Groupe de boutons (chips) pour sélection unique.
+ */
 function ChipGroup({
     options,
     selected,
@@ -389,20 +440,29 @@ function ChipGroup({
                 return (
                     <TouchableOpacity
                         key={opt}
-                        style={[styles.chip, isSel && styles.chipSelected, invalid && styles.chipInvalid]}
+                        style={[
+                            styles.chip,
+                            isSel && styles.chipSelected,
+                            invalid && styles.chipInvalid,
+                        ]}
                         onPress={() => onSelect(opt)}
                         accessibilityRole="button"
                         accessibilityState={{ selected: isSel }}
                     >
-                        <Text style={{ color: isSel ? colors.white : colors.mediumBlue, fontWeight: "700" }}>{opt}</Text>
+                        <Text
+                            style={{
+                                color: isSel ? colors.white : colors.mediumBlue,
+                                fontWeight: "700",
+                            }}
+                        >
+                            {opt}
+                        </Text>
                     </TouchableOpacity>
                 );
             })}
         </View>
     );
 }
-
-/* ----------------------------- Styles ----------------------------- */
 
 const styles = StyleSheet.create({
     overlay: {
@@ -412,8 +472,6 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     kav: { width: "100%", alignItems: "center" },
-
-    // Grande fenêtre, encore scrollable si besoin
     container: {
         width: "94%",
         maxWidth: 560,
@@ -428,7 +486,6 @@ const styles = StyleSheet.create({
         minHeight: "74%",
         maxHeight: "92%",
     },
-
     closeBtn: {
         position: "absolute",
         top: 10,

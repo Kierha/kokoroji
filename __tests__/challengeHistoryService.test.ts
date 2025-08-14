@@ -10,16 +10,16 @@ import {
   getDefiHistory,
   addDefiHistory,
   deleteDefiHistory,
-} from "../src/services/defiHistoryService";
+} from "../src/services/challengeHistoryService";
 import { getDatabaseAsync } from "../src/database/db";
-import type { DefiHistory } from "../src/models/defiHistory";
+import type { DefiHistory } from "../src/models/challengeHistory";
 
 // Mocks des dépendances
 jest.mock("../src/database/db", () => ({
   getDatabaseAsync: jest.fn(),
 }));
 
-describe("defiHistoryService", () => {
+describe("challengeHistoryService", () => {
   let mockDb: any;
 
   beforeEach(() => {

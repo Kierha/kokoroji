@@ -1,6 +1,6 @@
 import { getDatabaseAsync } from "../database/db";
 import { addLog } from "./logService";
-import { Defi } from "../models/defi";
+import { Defi } from "../models/challenge";
 
 /**
  * Récupère tous les défis personnalisés pour une famille donnée.

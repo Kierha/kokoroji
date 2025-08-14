@@ -262,3 +262,30 @@ export async function updateChild(
     throw error;
   }
 }
+
+/**
+ * Récupère une liste d'enfants à partir de leurs identifiants.
+ * @param ids - Tableau des identifiants d'enfants
+ * @returns Tableau des enfants correspondants
+ */
+export async function getChildrenByIds(ids: number[]): Promise<any[]> {
+    if (!ids.length) return [];
+    const db = await getDatabaseAsync();
+    return await db.getAllAsync(
+        `SELECT * FROM children WHERE id IN (${ids.map(() => "?").join(",")})`,
+        ids
+    );
+}
+
+/**
+ * Met à jour le solde de KoroCoins d'un enfant.
+ * @param childId - Identifiant de l'enfant
+ * @param newAmount - Nouveau solde de KoroCoins
+ */
+export async function updateChildKorocoins(childId: number, newAmount: number): Promise<void> {
+    const db = await getDatabaseAsync();
+    await db.runAsync(
+        `UPDATE children SET korocoins = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+        [newAmount, childId]
+    );
+}

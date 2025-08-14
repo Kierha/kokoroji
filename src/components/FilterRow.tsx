@@ -8,7 +8,6 @@ type Props = {
     label: string;
     options: FilterOption[];
     selected: string;
-    /** Callback déclenché lors de la sélection d'une option */
     onSelect: (id: string) => void;
 };
 

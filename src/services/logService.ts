@@ -1,6 +1,11 @@
 import { getDatabaseAsync } from "../database/db";
 
 export type LogLevel = "info" | "warning" | "error" | "critical";
+
+/**
+ * Types de logs disponibles dans l'application.
+ * Les valeurs doivent rester synchronisées avec la logique métier.
+ */
 export type LogType =
   | "session"
   | "defi"
@@ -9,7 +14,9 @@ export type LogType =
   | "sync"
   | "error"
   | "debug"
-  | "system";
+  | "system"
+  | "reward_created"
+  | "reward_granted";
 
 export interface AppLog {
   id?: number;
@@ -58,7 +65,9 @@ export async function addLog(log: AppLog): Promise<void> {
  * @param filter - Objet partiel de filtres (log_type, child_id, is_synced).
  * @returns Promise<AppLog[]> - Liste des logs correspondants.
  */
-export async function getLogs(filter: Partial<{ log_type: LogType; child_id: string; is_synced: number }> = {}): Promise<AppLog[]> {
+export async function getLogs(
+  filter: Partial<{ log_type: LogType; child_id: string; is_synced: number }> = {}
+): Promise<AppLog[]> {
   const db = await getDatabaseAsync();
   let sql = `SELECT * FROM app_logs WHERE 1=1`;
   const params: any[] = [];

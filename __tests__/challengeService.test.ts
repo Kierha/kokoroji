@@ -18,7 +18,7 @@ import {
 } from "../src/services/challengeService";
 import { getDatabaseAsync } from "../src/database/db";
 import { addLog } from "../src/services/logService";
-import type { Defi } from "../src/models/defi";
+import type { Defi } from "../src/models/challenge";
 
 // Mocks des dépendances
 jest.mock("../src/database/db", () => ({

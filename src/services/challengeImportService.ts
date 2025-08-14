@@ -1,7 +1,7 @@
 import { importDefaultChallenges } from "./challengeService";
 import { isChallengesImported, setChallengesImported } from "./settingsFlagsService";
 import { supabase } from "./supabaseClient";
-import { Defi } from "../models/defi";
+import { Defi } from "../models/challenge";
 
 /**
  * Formate l'heure courante en chaîne HH:MM:SS.mmm (usage interne).
