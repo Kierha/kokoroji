@@ -29,6 +29,7 @@
     "expo-dev-client": "~5.2.4",
     "expo-sqlite": "~15.2.14",
     "expo-status-bar": "~2.2.3",
+    "lucide-react-native": "^0.539.0",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-native": "0.79.5",

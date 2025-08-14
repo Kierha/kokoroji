@@ -5,7 +5,8 @@ const SYNC_ENABLED_KEY = "sync_enabled";
 const SYNC_STATE_KEY = "sync_state";
 const LAST_SYNC_KEY = "last_sync";
 const LAST_MANUAL_SYNC_KEY = "last_manual_sync";
-const CHALLENGES_IMPORTED_KEY = "challenges_imported"; // Ajout pour import défis par défaut
+const CHALLENGES_IMPORTED_KEY = "challenges_imported"; // Import défis par défaut
+const REWARDS_IMPORTED_KEY = "rewards_imported";       // Import récompenses par défaut
 
 /**
  * Récupère l'état d'activation de la synchronisation.
@@ -135,5 +136,32 @@ export async function setChallengesImported(imported: boolean): Promise<void> {
   await db.runAsync(
     `INSERT OR REPLACE INTO app_flags (key, value) VALUES (?, ?);`,
     [CHALLENGES_IMPORTED_KEY, imported ? "1" : "0"]
+  );
+}
+
+// === FLAGS IMPORT RÉCOMPENSES PAR DÉFAUT ===
+
+/**
+ * Récupère l'état d'import des récompenses par défaut.
+ * @returns true si déjà importées, false sinon
+ */
+export async function getRewardsImportedFlag(): Promise<boolean> {
+  const db = await getDatabaseAsync();
+  const result = await db.getFirstAsync(
+    `SELECT value FROM app_flags WHERE key = ?;`,
+    [REWARDS_IMPORTED_KEY]
+  );
+  return result?.value === "1";
+}
+
+/**
+ * Définit l'état d'import des récompenses par défaut.
+ * @param imported true si import déjà effectué, false sinon
+ */
+export async function setRewardsImportedFlag(imported: boolean): Promise<void> {
+  const db = await getDatabaseAsync();
+  await db.runAsync(
+    `INSERT OR REPLACE INTO app_flags (key, value) VALUES (?, ?);`,
+    [REWARDS_IMPORTED_KEY, imported ? "1" : "0"]
   );
 }

@@ -22,8 +22,8 @@ import { proposeAndImportDefaultChallengesCloud } from "../../../services/challe
 import { isChallengesImported, setChallengesImported } from "../../../services/settingsFlagsService";
 import { getFamily } from "../../../services/onboardingService";
 
-import DefiItem from "../../../components/DefiItem";
-import DefiForm from "../../../components/DefiForm";
+import DefiItem from "../../../components/ChallengeItem";
+import DefiForm from "../../../components/ChallengeForm";
 import HistoryModal from "../../../components/HistoryModal";
 import Loader from "../../../components/Loader";
 import ButtonPrimary from "../../../components/ButtonPrimary";
@@ -35,9 +35,9 @@ import { useDebouncedValue } from "../../../hooks/useDebouncedValue";
 import { normalize } from "../../../utils/text";
 
 import { colors } from "../../../styles/colors";
-import { Defi } from "../../../models/defi";
-import { DefiHistory } from "../../../models/defiHistory";
-import { getDefiHistory } from "../../../services/defiHistoryService";
+import { Defi } from "../../../models/challenge";
+import { DefiHistory } from "../../../models/challengeHistory";
+import { getDefiHistory } from "../../../services/challengeHistoryService";
 
 /**
  * Écran de gestion des défis Kokoroji.

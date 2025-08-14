@@ -76,7 +76,7 @@ jest.mock("../src/components/ButtonSecondary", () => {
         );
     };
 });
-jest.mock("../src/components/DefiItem", () => {
+jest.mock("../src/components/ChallengeItem", () => {
     const React = require("react");
     const { TouchableOpacity, Text } = require("react-native");
     return function DefiItem(props: any) {
@@ -87,7 +87,7 @@ jest.mock("../src/components/DefiItem", () => {
         );
     };
 });
-jest.mock("../src/components/DefiForm", () => {
+jest.mock("../src/components/ChallengeForm", () => {
     const React = require("react");
     const { Text } = require("react-native");
     return function DefiForm(props: any) {
@@ -121,7 +121,7 @@ jest.mock("../src/services/challengeService", () => ({
     deleteChallenge: jest.fn().mockResolvedValue(undefined),
     reactivateChallenges: jest.fn().mockResolvedValue(undefined),
 }));
-jest.mock("../src/services/defiHistoryService", () => ({
+jest.mock("../src/services/ChallengeHistoryService", () => ({
     getDefiHistory: jest.fn().mockResolvedValue([
         { id: 11, family_id: 1, defi_id: 1, completed_at: "2025-08-08T10:00:00", completed_by: "Parent" },
     ]),
