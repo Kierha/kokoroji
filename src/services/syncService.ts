@@ -12,7 +12,7 @@ import { getPendingLogs, markLogsAsSynced } from "./logService";
 export async function syncLogsToCloud(): Promise<void> {
   const pendingLogs = await getPendingLogs();
   if (pendingLogs.length === 0) {
-    console.log("[SYNC] Aucun log à synchroniser.");
+  if (__DEV__) console.log("[SYNC] Aucun log à synchroniser.");
     return;
   }
 
@@ -41,7 +41,7 @@ export async function syncLogsToCloud(): Promise<void> {
     // Mise à jour locale pour marquer les logs comme synchronisés
     await markLogsAsSynced(pendingLogs.map((log) => log.id!));
 
-    console.log(`[SYNC] ${pendingLogs.length} logs synchronisés vers le cloud.`);
+  if (__DEV__) console.log(`[SYNC] ${pendingLogs.length} logs synchronisés vers le cloud.`);
   } catch (error) {
     console.error("[SYNC] Erreur dans syncLogsToCloud:", error);
     // Logs restent en attente pour tentative future

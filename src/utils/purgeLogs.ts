@@ -42,8 +42,8 @@ export async function checkAndPurgeLogs(days = 30): Promise<void> {
   if (!lastPurge || new Date(lastPurge).toDateString() !== now.toDateString()) {
     await purgeOldLogs(days);
     await setFlag(PURGE_FLAG_KEY, now.toISOString());
-    console.log("Purge journalière effectuée.");
+    if (__DEV__) console.log("Purge journalière effectuée.");
   } else {
-    console.log("Purge déjà effectuée aujourd’hui.");
+    if (__DEV__) console.log("Purge déjà effectuée aujourd’hui");
   }
 }

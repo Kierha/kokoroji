@@ -51,12 +51,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             role: "authenticated",
         } as User);
         setLoading(false);
-        console.log("USER BYPASS DEV :", {
-            id: "dev-user-id",
-            email: "dev@kokoroji.com",
-            aud: "authenticated",
-            role: "authenticated",
-        });
+        if (__DEV__) {
+            console.log("USER BYPASS DEV :", {
+                id: "dev-user-id",
+                email: "dev@kokoroji.com",
+                aud: "authenticated",
+                role: "authenticated",
+            });
+        }
     }, []);
 
     // Initialisation de l'utilisateur Supabase réel
