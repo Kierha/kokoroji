@@ -228,75 +228,79 @@ export default function SettingsScreen({ navigation }: any) {
 
                     <View style={{ height: 22 }} />
 
-                    <View style={styles.debugButtonsContainer}>
-                        <TouchableOpacity
-                            style={[styles.settingButton, styles.resetButton]}
-                            onPress={() => setShowResetModal(true)}
-                        >
-                            <Text style={[styles.settingText, styles.resetText]}>
-                                Réinitialiser l’onboarding (debug)
-                            </Text>
-                        </TouchableOpacity>
-                        {__DEV__ && (
-                            <TouchableOpacity
-                                style={[styles.settingButton, styles.devDangerButton]}
-                                onPress={() => setShowDevDangerModal(true)}
-                            >
-                                <Text style={[styles.settingText, styles.devDangerText]}>
-                                    [DEV] Supprimer complètement la base locale
-                                </Text>
-                            </TouchableOpacity>
-                        )}
-                        {__DEV__ && (
-                            <TouchableOpacity
-                                style={{
-                                    backgroundColor: "#F1F3F7",
-                                    paddingVertical: 11,
-                                    paddingHorizontal: 18,
-                                    borderRadius: 13,
-                                    alignItems: "center",
-                                    marginTop: 7,
-                                    borderWidth: 1,
-                                    borderColor: colors.mediumBlue,
-                                }}
-                                onPress={async () => {
-                                    try {
-                                        const logs = await getLogs();
-                                        if (!logs.length) {
-                                            console.log("==> [DEBUG] Aucun log présent dans la base.");
-                                        } else {
-                                            const lastLogs = logs.slice(-20).reverse();
-                                            console.log(
-                                                `==> [DEBUG] ${logs.length} logs trouvés. Affichage des 20 plus récents :\n`
-                                            );
-                                            lastLogs.forEach((log, i) => {
-                                                console.log(
-                                                    `[${logs.length - i}] [${log.timestamp}] [${log.log_type.toUpperCase()}] [${log.level}] : ${log.context}\nDetails: ${log.details}\n`
-                                                );
-                                            });
-                                            if (logs.length > 20) {
-                                                console.log(
-                                                    `... (${logs.length - 20} autres logs plus anciens masqués pour lisibilité)`
-                                                );
-                                            }
-                                        }
-                                    } catch (e) {
-                                        console.error("[DEBUG] Impossible d'afficher les logs :", e);
-                                    }
-                                }}
-                            >
-                                <Text
+                    {__DEV__ && (
+                        <View style={styles.debugButtonsContainer}>
+                            {__DEV__ && (
+                                <TouchableOpacity
+                                    style={[styles.settingButton, styles.resetButton]}
+                                    onPress={() => setShowResetModal(true)}
+                                >
+                                    <Text style={[styles.settingText, styles.resetText]}>
+                                        Réinitialiser l’onboarding
+                                    </Text>
+                                </TouchableOpacity>
+                            )}
+                            {__DEV__ && (
+                                <TouchableOpacity
+                                    style={[styles.settingButton, styles.devDangerButton]}
+                                    onPress={() => setShowDevDangerModal(true)}
+                                >
+                                    <Text style={[styles.settingText, styles.devDangerText]}>
+                                        [DEV] Supprimer complètement la base locale
+                                    </Text>
+                                </TouchableOpacity>
+                            )}
+                            {__DEV__ && (
+                                <TouchableOpacity
                                     style={{
-                                        color: colors.mediumBlue,
-                                        fontWeight: "700",
-                                        fontSize: 16,
+                                        backgroundColor: "#F1F3F7",
+                                        paddingVertical: 11,
+                                        paddingHorizontal: 18,
+                                        borderRadius: 13,
+                                        alignItems: "center",
+                                        marginTop: 7,
+                                        borderWidth: 1,
+                                        borderColor: colors.mediumBlue,
+                                    }}
+                                    onPress={async () => {
+                                        try {
+                                            const logs = await getLogs();
+                                            if (!logs.length) {
+                                                console.log("==> [DEBUG] Aucun log présent dans la base.");
+                                            } else {
+                                                const lastLogs = logs.slice(-20).reverse();
+                                                console.log(
+                                                    `==> [DEBUG] ${logs.length} logs trouvés. Affichage des 20 plus récents :\n`
+                                                );
+                                                lastLogs.forEach((log, i) => {
+                                                    console.log(
+                                                        `[${logs.length - i}] [${log.timestamp}] [${log.log_type.toUpperCase()}] [${log.level}] : ${log.context}\nDetails: ${log.details}\n`
+                                                    );
+                                                });
+                                                if (logs.length > 20) {
+                                                    console.log(
+                                                        `... (${logs.length - 20} autres logs plus anciens masqués pour lisibilité)`
+                                                    );
+                                                }
+                                            }
+                                        } catch (e) {
+                                            console.error("[DEBUG] Impossible d'afficher les logs :", e);
+                                        }
                                     }}
                                 >
-                                    Afficher logs console (DEBUG)
-                                </Text>
-                            </TouchableOpacity>
-                        )}
-                    </View>
+                                    <Text
+                                        style={{
+                                            color: colors.mediumBlue,
+                                            fontWeight: "700",
+                                            fontSize: 16,
+                                        }}
+                                    >
+                                        Afficher logs console (DEBUG)
+                                    </Text>
+                                </TouchableOpacity>
+                            )}
+                        </View>
+                    )}
                 </ScrollView>
                 <Footer />
             </View>

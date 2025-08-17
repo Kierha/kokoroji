@@ -40,7 +40,7 @@ const LoginDevScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             setError(loginError.message || "Erreur de connexion");
         } else {
             Alert.alert("Connexion réussie", "Vous êtes connecté via Supabase.");
-            // TODO : naviguer vers l'écran principal ou revenir en arrière
+            // Navigation post-login laissée au flux principal (pas d'action supplémentaire ici)
         }
     };
 
@@ -51,7 +51,7 @@ const LoginDevScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     const handleBypass = async () => {
         await signInDevUser();
         Alert.alert("Bypass Dev", "Connexion locale effectuée (mode dev).");
-        // TODO : naviguer vers l'écran principal ou revenir en arrière
+        // Retour automatique géré par l'état d'auth (aucune navigation forcée ici)
     };
 
     return (

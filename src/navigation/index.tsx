@@ -12,7 +12,7 @@ import ChallengeStack from "./ChallengeStack";
 import SessionStack from "./SessionStack";
 import RewardsStack from "./RewardsStack";
 import ProfileStack from "./ProfileStack";
-import LoginDevScreen from "../screens/dev/LoginDevScreen"; 
+import LoginDevScreen from "../screens/dev/LoginDevScreen";
 
 // === TypeScript : déclaration des routes principales ===
 export type RootStackParamList = {
@@ -22,7 +22,7 @@ export type RootStackParamList = {
     SessionStack: undefined;
     RewardsStack: undefined;
     ProfileStack: undefined;
-    LoginDevScreen: undefined; 
+    LoginDevScreen: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -62,10 +62,10 @@ const AppNavigator: React.FC = () => {
         return <Loader />;
     }
 
-    // Logs de navigation pour debug/dev
-    if (!user) console.log("[NAV] Aucune session utilisateur → stack Login");
-    if (user && onboardingDone) console.log("[NAV] Utilisateur connecté + onboarding OK → stack Home/Features");
-    if (user && !onboardingDone) console.log("[NAV] Utilisateur connecté + onboarding INCOMPLET → stack Onboarding");
+    // Logs de navigation (supprimés en production pour propreté PFE)
+    // if (!user) console.log("[NAV] Aucune session utilisateur -> stack Login");
+    // if (user && onboardingDone) console.log("[NAV] Utilisateur connecté + onboarding OK -> stack Home/Features");
+    // if (user && !onboardingDone) console.log("[NAV] Utilisateur connecté + onboarding INCOMPLET -> stack Onboarding");
 
     // Affiche la stack appropriée selon l'état utilisateur et onboarding
     return (
