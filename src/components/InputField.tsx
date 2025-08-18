@@ -69,11 +69,11 @@ const styles = StyleSheet.create({
         boxSizing: "border-box" as any, // Pour la version web uniquement
     },
     inputError: {
-        borderColor: colors.pink,
+        borderColor: colors.danger,
     },
     errorText: {
         marginTop: 4,
-        color: colors.pink,
+        color: colors.danger,
         fontSize: 12,
     },
 });

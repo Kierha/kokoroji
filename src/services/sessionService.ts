@@ -335,44 +335,61 @@ export async function awardCoinsForChildren(params: {
   const amount = Number(params.amountPerChild) || 0;
   if (!amount || !params.childIds?.length) return;
 
-  for (const childId of params.childIds) {
-    await db.runAsync(
-      `INSERT INTO coins_history
-         (family_id, child_id, session_id, defi_id, amount, reason, created_at, created_by, is_synced)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0);`,
-      [
-        String(params.familyId),
-        childId,
-        params.sessionId,
-        params.defiId ?? null,
-        amount,
-        params.reason ?? null,
-        now,
-        params.createdBy ?? "",
-      ]
-    );
+  try {
+    for (const childId of params.childIds) {
+      await db.runAsync(
+        `INSERT INTO coins_history
+           (family_id, child_id, session_id, defi_id, amount, reason, created_at, created_by, is_synced)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0);`,
+        [
+          String(params.familyId),
+          childId,
+          params.sessionId,
+          params.defiId ?? null,
+          amount,
+          params.reason ?? null,
+          now,
+          params.createdBy ?? "",
+        ]
+      );
 
-    await db.runAsync(
-      `UPDATE children
-         SET korocoins = COALESCE(korocoins, 0) + ?
-       WHERE id = ? AND family_id = ?;`,
-      [amount, childId, String(params.familyId)]
-    );
+      await db.runAsync(
+        `UPDATE children
+           SET korocoins = COALESCE(korocoins, 0) + ?
+         WHERE id = ? AND family_id = ?;`,
+        [amount, childId, String(params.familyId)]
+      );
+    }
+
+    await logInfo({
+      context: "Crédit Koro-Coins",
+      timestamp: now,
+      details: {
+        session_id: params.sessionId,
+        defi_id: params.defiId ?? null,
+        amount_per_child: amount,
+        total: amount * params.childIds.length,
+      },
+      familyId: params.familyId,
+      childIdsJson: JSON.stringify(params.childIds),
+      refId: params.sessionId,
+    });
+  } catch (err: any) {
+    await logError({
+      context: "Echec crédit Koro-Coins",
+      details: {
+        session_id: params.sessionId,
+        defi_id: params.defiId ?? null,
+        amount_per_child: amount,
+        message: err?.message || String(err),
+      },
+      familyId: params.familyId,
+      childIdsJson: JSON.stringify(params.childIds),
+      refId: params.sessionId,
+      logType: "error",
+    });
+    throw err;
   }
-
-  await logInfo({
-    context: "Crédit Koro-Coins",
-    timestamp: now,
-    details: {
-      session_id: params.sessionId,
-      defi_id: params.defiId ?? null,
-      amount_per_child: amount,
-      total: amount * params.childIds.length,
-    },
-    familyId: params.familyId,
-    childIdsJson: JSON.stringify(params.childIds),
-    refId: params.sessionId,
-  });
 }
 
 /**

@@ -13,9 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "../../styles/colors";
 import HomeCard from "../../components/HomeCard";
 import Footer from "../../components/Footer";
-import {
-    getParentName,
-} from "../../services/onboardingService";
+import { getParentName, getFamily, getChildren } from "../../services/onboardingService";
 import { getPendingLogs } from "../../services/logService";
 import { syncLogsToCloud } from "../../services/syncService";
 import { getSyncEnabled, setLastSync } from "../../services/settingsFlagsService";
@@ -52,12 +50,33 @@ export default function HomeScreen() {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_lastSync, setLastSyncState] = useState<Date | null>(null);
     const lastAutoSyncRef = useRef<number | null>(null);
-    const koroCoins = 0;
+    const [familyId, setFamilyId] = useState<number | null>(null);
+    const [totalCoins, setTotalCoins] = useState<number>(0);
 
     // Récupère le prénom parent au montage
     React.useEffect(() => {
-        getParentName().then(setParentName);
+        (async () => {
+            getParentName().then(setParentName);
+            const fam = await getFamily();
+            if (fam?.id) {
+                setFamilyId(Number(fam.id));
+            }
+        })();
     }, []);
+
+    // Charge/recalk total KoroCoins famille
+    React.useEffect(() => {
+        if (!familyId) return;
+        (async () => {
+            try {
+                const children = await getChildren(familyId);
+                const sum = (children ?? []).reduce((acc: number, c: any) => acc + (Number(c.korocoins) || 0), 0);
+                setTotalCoins(sum);
+            } catch (e) {
+                console.warn("[HomeScreen] Erreur chargement KoroCoins:", e);
+            }
+        })();
+    }, [familyId]);
 
     // Synchronisation automatique au focus, limitée à 1 fois/heure
     useFocusEffect(
@@ -123,7 +142,7 @@ export default function HomeScreen() {
                         </View>
                         <View style={styles.coinsWrapper}>
                             <Image source={require("../../assets/kokoroji-korocoins.png")} style={styles.coinIcon} />
-                            <Text style={styles.coinCount}>{koroCoins}</Text>
+                            <Text style={styles.coinCount}>{totalCoins}</Text>
                         </View>
                     </View>
 

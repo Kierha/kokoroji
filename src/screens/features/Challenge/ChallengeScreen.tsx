@@ -37,7 +37,7 @@ import { normalize } from "../../../utils/text";
 import { colors } from "../../../styles/colors";
 import { Defi } from "../../../models/challenge";
 import { DefiHistory } from "../../../models/challengeHistory";
-import { getDefiHistory } from "../../../services/challengeHistoryService";
+import { getDefiHistory, getDefiHistoryDetailed, DefiHistoryDetailed } from "../../../services/challengeHistoryService";
 
 /**
  * Écran de gestion des défis Kokoroji.
@@ -92,6 +92,7 @@ export default function ChallengeScreen() {
 
     const [reactivationMode, setReactivationMode] = useState(false);
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+    const [reactivationInfoVisible, setReactivationInfoVisible] = useState(false);
 
     const [editMode, setEditMode] = useState(false);
 
@@ -403,31 +404,51 @@ export default function ChallengeScreen() {
             <SafeAreaView edges={["bottom"]} style={styles.bottomBarSafe}>
                 <View style={styles.bottomBarInner}>
                     {reactivationMode ? (
-                        <View style={styles.leftBtnWrapper}>
-                            <ButtonPrimary title="Valider" disabled={selectedIds.size === 0} onPress={confirmReactivation} />
-                        </View>
+                        <>
+                            <View style={styles.leftBtnWrapper}>
+                                <ButtonPrimary
+                                    title="Valider"
+                                    disabled={selectedIds.size === 0}
+                                    onPress={confirmReactivation}
+                                    compact
+                                    textStyle={{ fontSize: 15 }}
+                                />
+                            </View>
+                            <View style={styles.rightBtnWrapper}>
+                                <ButtonSecondary
+                                    title="Terminer"
+                                    onPress={() => {
+                                        setReactivationMode(false);
+                                        setSelectedIds(new Set());
+                                    }}
+                                />
+                            </View>
+                        </>
                     ) : (
-                        <View style={styles.leftBtnWrapper}>
-                            <ButtonSecondary
-                                title="Réactivation"
-                                disabled={!hasCompletedDefis}
-                                onPress={() => {
-                                    setEditMode(false);
-                                    setReactivationMode(true);
-                                    setSelectedIds(new Set());
-                                }}
-                            />
-                        </View>
+                        <>
+                            <View style={styles.leftBtnWrapper}>
+                                <ButtonSecondary
+                                    title="Réactivation"
+                                    disabled={!hasCompletedDefis}
+                                    onPress={() => {
+                                        if (!hasCompletedDefis) return;
+                                        setReactivationInfoVisible(true);
+                                    }}
+                                />
+                            </View>
+                            <View style={styles.rightBtnWrapper}>
+                                <ButtonPrimary
+                                    title="Ajouter un défi"
+                                    onPress={() => {
+                                        setEditingDefi(undefined);
+                                        requestAnimationFrame(() => setModalVisible(true));
+                                    }}
+                                    compact
+                                    textStyle={{ fontSize: 15 }}
+                                />
+                            </View>
+                        </>
                     )}
-                    <View style={styles.rightBtnWrapper}>
-                        <ButtonPrimary
-                            title="Ajouter un défi"
-                            onPress={() => {
-                                setEditingDefi(undefined);
-                                requestAnimationFrame(() => setModalVisible(true));
-                            }}
-                        />
-                    </View>
                 </View>
             </SafeAreaView>
 
@@ -444,20 +465,58 @@ export default function ChallengeScreen() {
                 editMode={!!editingDefi}
             />
 
-            <HistoryModal<DefiHistory>
+            <HistoryModal<DefiHistoryDetailed>
                 visible={historyVisible}
                 onClose={() => setHistoryVisible(false)}
                 title="Historique des défis réalisés"
-                fetchData={() => (familyId ? getDefiHistory(familyId) : Promise.resolve([]))}
-                renderItem={item => (
-                    <>
-                        <Text style={{ fontWeight: "700", color: colors.mediumBlue }}>{item.completed_at.slice(0, 10)}</Text>
-                        {item.completed_by && <Text>Par : {item.completed_by}</Text>}
-                    </>
-                )}
+                fetchData={() => (familyId ? getDefiHistoryDetailed(familyId) : Promise.resolve([]))}
+                renderItem={item => {
+                    // Format date JJ/MM/AAAA HH:MM
+                    const d = new Date(item.completed_at);
+                    const dd = String(d.getDate()).padStart(2, "0");
+                    const mm = String(d.getMonth() + 1).padStart(2, "0");
+                    const yyyy = d.getFullYear();
+                    const hh = String(d.getHours()).padStart(2, "0");
+                    const mi = String(d.getMinutes()).padStart(2, "0");
+                    const dateStr = `${dd}/${mm}/${yyyy} ${hh}:${mi}`;
+
+                    return (
+                        <>
+                            <Text style={{ fontWeight: "700", color: colors.darkBlue }}>
+                                {item.title || `Défi #${item.defi_id}`}
+                            </Text>
+                            <Text style={{ color: colors.darkBlue, marginTop: 2 }}>
+                                {dateStr}
+                                {item.completed_by ? ` • Validé par ${item.completed_by}` : ""}
+                            </Text>
+                            {item.participant_names?.length > 0 && (
+                                <Text style={{ color: colors.mediumBlue, marginTop: 2 }}>
+                                    Participants : {item.participant_names.join(", ")}
+                                </Text>
+                            )}
+                        </>
+                    );
+                }}
             />
 
             <AppAlertModal {...alert} />
+
+            {/* Modale d'explication réactivation */}
+            <AppAlertModal
+                visible={reactivationInfoVisible}
+                title="Mode réactivation"
+                message={
+                    "Sélectionnez dans la liste les défis déjà complétés que vous souhaitez rendre à nouveau disponibles. " +
+                    "Appuyez sur Valider pour confirmer ou Terminer pour quitter le mode. Les défis réactivés réapparaîtront comme ‘à faire’."
+                }
+                confirmLabel="Commencer"
+                onConfirm={() => {
+                    setReactivationInfoVisible(false);
+                    setEditMode(false);
+                    setSelectedIds(new Set());
+                    setReactivationMode(true);
+                }}
+            />
         </SafeAreaView>
     );
 }
@@ -583,18 +642,17 @@ const styles = StyleSheet.create({
     },
     bottomBarInner: {
         flexDirection: "row",
-        justifyContent: "center",
+        justifyContent: "space-between",
         paddingHorizontal: 20,
         paddingVertical: 12,
         minHeight: 72,
+        gap: 8,
     },
     leftBtnWrapper: {
-        flex: 0.4,
-        marginHorizontal: 4,
+        flex: 1,
     },
     rightBtnWrapper: {
-        flex: 0.6,
-        marginHorizontal: 4,
+        flex: 1,
     },
 });
 

@@ -25,38 +25,53 @@ export async function addChallenge(
   defi: Omit<Defi, "id" | "created_at" | "updated_at">
 ): Promise<number> {
   const db = await getDatabaseAsync();
-  const result = await db.runAsync(
-    `INSERT INTO defi_custom (
-      family_id, title, description, category, location,
-      duration_min, points_default, photo_required, age_min, age_max,
-      created_by, is_synced
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0);`,
-    [
-      String(defi.family_id),
-      defi.title,
-      defi.description ?? "",
-      defi.category ?? "",
-      defi.location ?? "",
-      defi.duration_min ?? null,
-      defi.points_default ?? null,
-      defi.photo_required ?? null,
-      defi.age_min ?? null,
-      defi.age_max ?? null,
-      defi.created_by ?? "",
-    ]
-  );
+  try {
+    const result = await db.runAsync(
+      `INSERT INTO defi_custom (
+        family_id, title, description, category, location,
+        duration_min, points_default, photo_required, age_min, age_max,
+        created_by, is_synced
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0);`,
+      [
+        String(defi.family_id),
+        defi.title,
+        defi.description ?? "",
+        defi.category ?? "",
+        defi.location ?? "",
+        defi.duration_min ?? null,
+        defi.points_default ?? null,
+        defi.photo_required ?? null,
+        defi.age_min ?? null,
+        defi.age_max ?? null,
+        defi.created_by ?? "",
+      ]
+    );
 
-  await addLog({
-    timestamp: new Date().toISOString(),
-    family_id: String(defi.family_id),
-    child_ids: "[]",
-    log_type: "defi",
-    level: "info",
-    context: "Ajout d'un défi personnalisé",
-    details: JSON.stringify({ defi }),
-  });
+    await addLog({
+      timestamp: new Date().toISOString(),
+      family_id: String(defi.family_id),
+      child_ids: "[]",
+      log_type: "defi",
+      level: "info",
+      context: "Ajout d'un défi personnalisé",
+      details: JSON.stringify({ defi }),
+    });
 
-  return result?.lastInsertRowId;
+    return result?.lastInsertRowId;
+  } catch (err: any) {
+    try {
+      await addLog({
+        timestamp: new Date().toISOString(),
+        family_id: String(defi.family_id),
+        child_ids: "[]",
+        log_type: "defi",
+        level: "error",
+        context: "Erreur ajout défi personnalisé",
+        details: JSON.stringify({ message: err?.message || String(err) }),
+      });
+    } catch {}
+    throw err;
+  }
 }
 
 /**
@@ -66,36 +81,51 @@ export async function addChallenge(
 export async function updateChallenge(defi: Defi): Promise<void> {
   if (!defi.id) throw new Error("ID du défi requis pour la mise à jour");
   const db = await getDatabaseAsync();
-  await db.runAsync(
-    `UPDATE defi_custom
-     SET title = ?, description = ?, category = ?, location = ?,
-         duration_min = ?, points_default = ?, photo_required = ?, age_min = ?, age_max = ?,
-         updated_at = CURRENT_TIMESTAMP, is_synced = 0
-     WHERE id = ? AND family_id = ?;`,
-    [
-      defi.title,
-      defi.description ?? "",
-      defi.category ?? "",
-      defi.location ?? "",
-      defi.duration_min ?? null,
-      defi.points_default ?? null,
-      defi.photo_required ?? null,
-      defi.age_min ?? null,
-      defi.age_max ?? null,
-      defi.id,
-      String(defi.family_id),
-    ]
-  );
+  try {
+    await db.runAsync(
+      `UPDATE defi_custom
+       SET title = ?, description = ?, category = ?, location = ?,
+           duration_min = ?, points_default = ?, photo_required = ?, age_min = ?, age_max = ?,
+           updated_at = CURRENT_TIMESTAMP, is_synced = 0
+       WHERE id = ? AND family_id = ?;`,
+      [
+        defi.title,
+        defi.description ?? "",
+        defi.category ?? "",
+        defi.location ?? "",
+        defi.duration_min ?? null,
+        defi.points_default ?? null,
+        defi.photo_required ?? null,
+        defi.age_min ?? null,
+        defi.age_max ?? null,
+        defi.id,
+        String(defi.family_id),
+      ]
+    );
 
-  await addLog({
-    timestamp: new Date().toISOString(),
-    family_id: String(defi.family_id),
-    child_ids: "[]",
-    log_type: "defi",
-    level: "info",
-    context: "Modification d'un défi",
-    details: JSON.stringify({ defi }),
-  });
+    await addLog({
+      timestamp: new Date().toISOString(),
+      family_id: String(defi.family_id),
+      child_ids: "[]",
+      log_type: "defi",
+      level: "info",
+      context: "Modification d'un défi",
+      details: JSON.stringify({ defi }),
+    });
+  } catch (err: any) {
+    try {
+      await addLog({
+        timestamp: new Date().toISOString(),
+        family_id: String(defi.family_id),
+        child_ids: "[]",
+        log_type: "defi",
+        level: "error",
+        context: "Erreur modification défi",
+        details: JSON.stringify({ id: defi.id, message: err?.message || String(err) }),
+      });
+    } catch {}
+    throw err;
+  }
 }
 
 /**
@@ -105,20 +135,35 @@ export async function updateChallenge(defi: Defi): Promise<void> {
  */
 export async function deleteChallenge(id: number, family_id: number): Promise<void> {
   const db = await getDatabaseAsync();
-  await db.runAsync(
-    `DELETE FROM defi_custom WHERE id = ? AND family_id = ?;`,
-    [id, String(family_id)]
-  );
+  try {
+    await db.runAsync(
+      `DELETE FROM defi_custom WHERE id = ? AND family_id = ?;`,
+      [id, String(family_id)]
+    );
 
-  await addLog({
-    timestamp: new Date().toISOString(),
-    family_id: String(family_id),
-    child_ids: "[]",
-    log_type: "defi",
-    level: "info",
-    context: "Suppression d'un défi personnalisé",
-    details: JSON.stringify({ id }),
-  });
+    await addLog({
+      timestamp: new Date().toISOString(),
+      family_id: String(family_id),
+      child_ids: "[]",
+      log_type: "defi",
+      level: "info",
+      context: "Suppression d'un défi personnalisé",
+      details: JSON.stringify({ id }),
+    });
+  } catch (err: any) {
+    try {
+      await addLog({
+        timestamp: new Date().toISOString(),
+        family_id: String(family_id),
+        child_ids: "[]",
+        log_type: "defi",
+        level: "error",
+        context: "Erreur suppression défi",
+        details: JSON.stringify({ id, message: err?.message || String(err) }),
+      });
+    } catch {}
+    throw err;
+  }
 }
 
 /**
@@ -178,6 +223,17 @@ export async function importDefaultChallenges(
     await db.execAsync("COMMIT;");
   } catch (err) {
     await db.execAsync("ROLLBACK;");
+    try {
+      await addLog({
+        timestamp: new Date().toISOString(),
+        family_id: String(family_id),
+        child_ids: "[]",
+        log_type: "defi",
+        level: "error",
+        context: "Erreur import défis par défaut",
+        details: JSON.stringify({ count: challenges.length, message: (err as any)?.message || String(err) }),
+      });
+    } catch {}
     throw err;
   }
 
@@ -205,20 +261,35 @@ export async function reactivateChallenges(
   const db = await getDatabaseAsync();
 
   const placeholders = defiIds.map(() => "?").join(",");
-  await db.runAsync(
-    `DELETE FROM defi_history
-     WHERE family_id = ?
-       AND defi_id IN (${placeholders});`,
-    [String(family_id), ...defiIds.map(String)]
-  );
+  try {
+    await db.runAsync(
+      `DELETE FROM defi_history
+       WHERE family_id = ?
+         AND defi_id IN (${placeholders});`,
+      [String(family_id), ...defiIds.map(String)]
+    );
 
-  await addLog({
-    timestamp: new Date().toISOString(),
-    family_id: String(family_id),
-    child_ids: "[]",
-    log_type: "defi",
-    level: "info",
-    context: "Réactivation de défi(s)",
-    details: JSON.stringify({ defiIds }),
-  });
+    await addLog({
+      timestamp: new Date().toISOString(),
+      family_id: String(family_id),
+      child_ids: "[]",
+      log_type: "defi",
+      level: "info",
+      context: "Réactivation de défi(s)",
+      details: JSON.stringify({ defiIds }),
+    });
+  } catch (err: any) {
+    try {
+      await addLog({
+        timestamp: new Date().toISOString(),
+        family_id: String(family_id),
+        child_ids: "[]",
+        log_type: "defi",
+        level: "error",
+        context: "Erreur réactivation défis",
+        details: JSON.stringify({ defiIds, message: err?.message || String(err) }),
+      });
+    } catch {}
+    throw err;
+  }
 }

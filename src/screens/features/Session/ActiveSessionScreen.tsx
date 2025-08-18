@@ -1,13 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-    FlatList,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-} from "react-native";
+import { FlatList, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
@@ -20,8 +12,8 @@ import Loader from "../../../components/Loader";
 import SessionCard from "../../../components/SessionCard";
 import EndSessionModal from "../../../components/EndSessionModal";
 
-import useActiveSession from "../../../hooks/useActiveSession";
-import usePhotoAttachment from "../../../hooks/usePhotoAttachment";
+import useActiveSessionHook from "../../../hooks/useActiveSession"; // renommé
+import usePhotoAttachmentHook from "../../../hooks/usePhotoAttachment"; // renommé
 import { getChildren, getFamily } from "../../../services/onboardingService";
 import { addLog, type LogLevel, type LogType } from "../../../services/logService";
 import { awardCoinsForChildren } from "../../../services/sessionService";
@@ -174,9 +166,9 @@ export default function ActiveSessionScreen() {
         updateRuntime,
         clearRuntime,
         restoreFromRuntimeIfPossible,
-    } = useActiveSession({ familyId: familyId ?? 0 });
+    } = useActiveSessionHook({ familyId: familyId ?? 0 });
 
-    const { loading: photoLoading, error: photoError, captureAndAttach, pickAndAttach } = usePhotoAttachment();
+    const { loading: photoLoading, error: photoError, captureAndAttach, pickAndAttach } = usePhotoAttachmentHook();
 
     // Boot : famille/enfants + log + refresh + cohérence runtime
     useEffect(() => {
@@ -265,43 +257,6 @@ export default function ActiveSessionScreen() {
         };
     }, [activeSession, familyId, participantsIds, plannedMin, sessionType]);
 
-    // Restauration au focus (runtime : index bundle, start chrono, compteur photo)
-    useFocusEffect(
-        useCallback(() => {
-            (async () => {
-                if (!familyId) return;
-                await refreshActive();
-                if (!activeSession?.id) return;
-
-                const r = await restoreFromRuntimeIfPossible();
-                if (r.restored) {
-                    if ((r as any).challengeStartISO) {
-                        const t = Date.parse((r as any).challengeStartISO as string);
-                        if (Number.isFinite(t)) {
-                            challengeStartRef.current = t;
-                            setChallengeElapsedSec(Math.max(0, Math.floor((Date.now() - t) / 1000)));
-                        }
-                    } else {
-                        challengeStartRef.current = Date.now();
-                        setChallengeElapsedSec(0);
-                    }
-
-                    if (typeof (r as any).bundleIndex === "number") setCurrentIdx((r as any).bundleIndex);
-
-                    const restoredCount = (r as any).currentPhotoCount ?? 0;
-                    setCurrentPhotoCount(restoredCount);
-                    setHasNewPhotoForCurrentDefi(restoredCount > 0);
-
-                    ensuredKeyRef.current = `${activeSession.id}:${sessionType}`;
-                    setCardLoading(false);
-                    return;
-                }
-
-                await ensureInitialProposal();
-            })();
-        }, [familyId, activeSession?.id, sessionType]),
-    );
-
     // Proposition initiale (avec délai mini pour stabilité UI)
     const ensureInitialProposal = useCallback(async () => {
         if (!lastUsedConfig || !activeSession?.id) return;
@@ -356,6 +311,43 @@ export default function ActiveSessionScreen() {
         }
     }, [lastUsedConfig, activeSession?.id, sessionType, proposeRandomDefi, proposeBundle, updateRuntime]);
 
+    // Restauration au focus (runtime : index bundle, start chrono, compteur photo)
+    useFocusEffect(
+        useCallback(() => {
+            (async () => {
+                if (!familyId) return;
+                await refreshActive();
+                if (!activeSession?.id) return;
+
+                const r = await restoreFromRuntimeIfPossible();
+                if (r.restored) {
+                    if ((r as any).challengeStartISO) {
+                        const t = Date.parse((r as any).challengeStartISO as string);
+                        if (Number.isFinite(t)) {
+                            challengeStartRef.current = t;
+                            setChallengeElapsedSec(Math.max(0, Math.floor((Date.now() - t) / 1000)));
+                        }
+                    } else {
+                        challengeStartRef.current = Date.now();
+                        setChallengeElapsedSec(0);
+                    }
+
+                    if (typeof (r as any).bundleIndex === "number") setCurrentIdx((r as any).bundleIndex);
+
+                    const restoredCount = (r as any).currentPhotoCount ?? 0;
+                    setCurrentPhotoCount(restoredCount);
+                    setHasNewPhotoForCurrentDefi(restoredCount > 0);
+
+                    ensuredKeyRef.current = `${activeSession.id}:${sessionType}`;
+                    setCardLoading(false);
+                    return;
+                }
+
+                await ensureInitialProposal();
+            })();
+        }, [familyId, activeSession?.id, sessionType, refreshActive, restoreFromRuntimeIfPossible, ensureInitialProposal]),
+    );
+
     // Défi courant
     const baseBundleDefi: DefiLite | null = useMemo(() => {
         const arr = bundle ?? [];
@@ -390,15 +382,7 @@ export default function ActiveSessionScreen() {
                 tickerRef.current = null;
             }
         };
-    }, [hasActive, activeSession?.id]);
-
-    useEffect(() => {
-        if (!currentDefi?.id) return;
-        if (!challengeStartRef.current) {
-            challengeStartRef.current = Date.now();
-            setChallengeElapsedSec(0);
-        }
-    }, [currentDefi?.id]);
+    }, [hasActive, activeSession]);
 
     // Actions
     const openEndSummary = useCallback(() => setEndPromptVisible(true), []);
@@ -433,7 +417,7 @@ export default function ActiveSessionScreen() {
                 setCardLoading(false);
             }, MIN_SWAP_DELAY_MS);
         }
-    }, [sessionType, currentIdx, bundleCount, openEndSummary, activeSession?.id, updateRuntime, persistChallengeStart]);
+    }, [sessionType, currentIdx, bundleCount, openEndSummary, activeSession, updateRuntime, persistChallengeStart]);
 
     const handleValidate = useCallback(async () => {
         if (!familyId || !activeSession?.id || !currentDefi) return;
@@ -503,7 +487,7 @@ export default function ActiveSessionScreen() {
         }
     }, [
         familyId,
-        activeSession?.id,
+        activeSession, // inclut id et autres champs
         currentDefi,
         participantsIds,
         sessionType,
@@ -511,6 +495,7 @@ export default function ActiveSessionScreen() {
         hasNewPhotoForCurrentDefi,
         validateDefi,
         openEndSummary,
+        updateRuntime,
     ]);
 
     const handlePass = useCallback(async () => {

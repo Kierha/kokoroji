@@ -84,3 +84,105 @@ export async function deleteDefiHistory(id: number): Promise<void> {
         [id]
     );
 }
+
+// =============================================================
+// VERSION ENRICHIE POUR L'UI (titre du défi + noms des enfants)
+// =============================================================
+
+export interface DefiHistoryDetailed extends DefiHistory {
+    title?: string;                 // Titre du défi si retrouvé dans defi_custom
+    participant_names: string[];    // Noms des enfants participants
+}
+
+/**
+ * Récupère l'historique enrichi des défis réalisés :
+ *  - jointure (LEFT JOIN) sur defi_custom pour récupérer le titre
+ *  - résolution des noms des enfants via table children
+ *  - filtres optionnels (search sur titre / completed_by / id défi, bornes dates)
+ * Ne modifie pas la fonction existante getDefiHistory afin de ne pas casser les tests existants.
+ */
+export async function getDefiHistoryDetailed(
+    family_id: number,
+    filter?: { search?: string; startDate?: string; endDate?: string }
+): Promise<DefiHistoryDetailed[]> {
+    const db = await getDatabaseAsync();
+
+    const where: string[] = ["h.family_id = ?"]; // alias h = defi_history
+    const params: any[] = [String(family_id)];
+
+    if (filter?.startDate) {
+        where.push("h.completed_at >= ?");
+        params.push(filter.startDate);
+    }
+    if (filter?.endDate) {
+        where.push("h.completed_at <= ?");
+        params.push(filter.endDate);
+    }
+    if (filter?.search && filter.search.trim().length) {
+        const q = `%${filter.search.trim().toLowerCase()}%`;
+        where.push(`(
+            LOWER(COALESCE(h.completed_by, '')) LIKE ?
+            OR LOWER(COALESCE(dc.title, '')) LIKE ?
+            OR CAST(h.defi_id AS TEXT) LIKE ?
+        )`);
+        params.push(q, q, `%${filter.search.trim()}%`); // pour l'id on garde casse d'origine
+    }
+
+    const sql = `SELECT
+            h.*, 
+            dc.title AS defi_title
+        FROM defi_history h
+        LEFT JOIN defi_custom dc ON dc.id = CAST(h.defi_id AS INTEGER) AND dc.family_id = h.family_id
+        WHERE ${where.join(" AND ")}
+        ORDER BY h.completed_at DESC`;
+
+    const rows = await db.getAllAsync(sql, params);
+
+    // Agrège tous les IDs enfants à résoudre en une seule requête
+    const allChildIds = new Set<number>();
+    for (const r of rows ?? []) {
+        if (r.children_ids) {
+            try {
+                const arr = JSON.parse(r.children_ids);
+                if (Array.isArray(arr)) arr.forEach((id: any) => { const n = Number(id); if (!isNaN(n)) allChildIds.add(n); });
+            } catch { /* ignore */ }
+        }
+    }
+
+    let childNameMap = new Map<number, string>();
+    if (allChildIds.size > 0) {
+        const placeholders = Array.from(allChildIds).map(() => "?").join(",");
+        const childrenRows = await db.getAllAsync(
+            `SELECT id, name FROM children WHERE id IN (${placeholders});`,
+            Array.from(allChildIds).map(String)
+        );
+        childNameMap = new Map(
+            (childrenRows ?? []).map((c: any) => [Number(c.id), c.name as string])
+        );
+    }
+
+    return (rows ?? []).map((row: any) => {
+        let childrenIds: number[] = [];
+        if (row.children_ids) {
+            try {
+                const parsed = JSON.parse(row.children_ids);
+                if (Array.isArray(parsed)) {
+                    childrenIds = parsed.map((x: any) => Number(x)).filter((x: number) => !isNaN(x));
+                }
+            } catch { /* ignore */ }
+        }
+        const participant_names = childrenIds.map(id => childNameMap.get(id) || `Enfant ${id}`);
+        return {
+            id: Number(row.id),
+            defi_id: isNaN(Number(row.defi_id)) ? row.defi_id : Number(row.defi_id),
+            family_id: Number(row.family_id),
+            children_ids: childrenIds,
+            session_id: row.session_id !== undefined ? row.session_id : undefined,
+            completed_at: row.completed_at,
+            completed_by: row.completed_by ?? undefined,
+            is_synced: row.is_synced,
+            title: row.defi_title ?? undefined,
+            participant_names,
+        } as DefiHistoryDetailed;
+    });
+}
