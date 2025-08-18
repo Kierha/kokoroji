@@ -10,7 +10,7 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../../../styles/colors";
 import { useAuth } from "../../../hooks/useAuth";
-import { resetOnboardingFlag, getFamily } from "../../../services/onboardingService";
+import { getFamily } from "../../../services/onboardingService";
 import { deleteDatabase } from "../../../services/debugUtils";
 import { addLog, getLogs } from "../../../services/logService";
 import SyncCard from "../../../components/SyncCard";
@@ -51,8 +51,8 @@ export default function SettingsScreen({ navigation }: any) {
     const [lastSync, setLastSyncState] = useState<Date | null>(null);
     const [progress, setProgress] = useState(0);
     const [showSyncProtection, setShowSyncProtection] = useState(false);
-    const [showResetModal, setShowResetModal] = useState(false);
-    const [resetSuccess, setResetSuccess] = useState(false);
+    // const [showResetModal, setShowResetModal] = useState(false); // supprimé (reset onboarding retiré)
+    // const [resetSuccess, setResetSuccess] = useState(false);
     const [showDevDangerModal, setShowDevDangerModal] = useState(false);
     const [lastManualSync, setLastManualSyncState] = useState<number | null>(null);
     const [familyId, setFamilyId] = useState<string | undefined>();
@@ -179,12 +179,7 @@ export default function SettingsScreen({ navigation }: any) {
         });
     };
 
-    // Reset de l’onboarding (debug)
-    const handleResetOnboarding = async () => {
-        await resetOnboardingFlag();
-        setShowResetModal(false);
-        setResetSuccess(true);
-    };
+    // Reset onboarding retiré (plus utilisé)
 
     // Suppression complète de la base locale (debug)
     const handleDeleteDb = async () => {
@@ -230,16 +225,7 @@ export default function SettingsScreen({ navigation }: any) {
 
                     {__DEV__ && (
                         <View style={styles.debugButtonsContainer}>
-                            {__DEV__ && (
-                                <TouchableOpacity
-                                    style={[styles.settingButton, styles.resetButton]}
-                                    onPress={() => setShowResetModal(true)}
-                                >
-                                    <Text style={[styles.settingText, styles.resetText]}>
-                                        Réinitialiser l’onboarding
-                                    </Text>
-                                </TouchableOpacity>
-                            )}
+                            {/* Bouton reset onboarding supprimé */}
                             {__DEV__ && (
                                 <TouchableOpacity
                                     style={[styles.settingButton, styles.devDangerButton]}
@@ -335,22 +321,7 @@ export default function SettingsScreen({ navigation }: any) {
                 confirmLabel="Fermer"
                 onConfirm={() => setShowSyncProtection(false)}
             />
-            <AppAlertModal
-                visible={showResetModal}
-                title="Réinitialiser l’onboarding"
-                message="Voulez-vous vraiment réinitialiser l’onboarding ? Cette opération ne supprime pas les données existantes, mais vous devrez recommencer la configuration au prochain lancement."
-                confirmLabel="Réinitialiser"
-                onConfirm={handleResetOnboarding}
-                onCancel={() => setShowResetModal(false)}
-                destructive
-            />
-            <AppAlertModal
-                visible={resetSuccess}
-                title="Onboarding réinitialisé"
-                message="Relancez l’application ou déconnectez-vous pour recommencer l’onboarding."
-                confirmLabel="Fermer"
-                onConfirm={() => setResetSuccess(false)}
-            />
+            {/* Modales reset onboarding supprimées */}
             <AppAlertModal
                 visible={showDevDangerModal}
                 title="Supprimer la base locale"
@@ -439,13 +410,7 @@ const styles = StyleSheet.create({
         fontWeight: "600",
         textAlign: "center",
     },
-    resetButton: {
-        backgroundColor: "#FFE8E8",
-        borderColor: "#EB5757",
-    },
-    resetText: {
-        color: "#EB5757",
-    },
+    // styles reset onboarding supprimés
     devDangerButton: {
         backgroundColor: "#FFE8E8",
         borderColor: "#EB5757",

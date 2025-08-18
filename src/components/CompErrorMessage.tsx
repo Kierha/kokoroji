@@ -22,7 +22,7 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({ message }) => {
 
 const styles = StyleSheet.create({
     errorText: {
-        color: colors.pink,
+        color: colors.danger,
         fontSize: 12,
         marginTop: 4,
     },

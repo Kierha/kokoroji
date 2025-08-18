@@ -11,6 +11,7 @@ import HistoryModal from "../../../components/HistoryModal";
 import Loader from "../../../components/Loader";
 import SessionConfigModal from "../../../components/SessionConfigModal";
 
+// eslint-disable-next-line import/no-named-as-default
 import useActiveSession from "../../../hooks/useActiveSession";
 import { getChildren, getFamily } from "../../../services/onboardingService";
 import { getSessionHistory } from "../../../services/sessionHistoryService";

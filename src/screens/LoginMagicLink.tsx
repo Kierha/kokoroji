@@ -10,13 +10,12 @@ import { View, StyleSheet, Platform, Alert, Text, Animated } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context";
 import InputEmail from "../components/InputField";
 import ButtonPrimary from "../components/ButtonPrimary";
-import ErrorMessage from "../components/CompErrorMessage";
 import { colors } from "../styles/colors";
 import { sendMagicLink } from "../services/authService";
 import { isValidEmail } from "../utils/email";
 import { mapMagicLinkError } from "../utils/errorMessages";
 import KoroLogo from "../assets/kokoroji-simple.png";
-import Footer from "../components/Footer"; 
+import Footer from "../components/Footer";
 
 /**
  * Composant de formulaire de connexion par Magic Link.
@@ -116,7 +115,6 @@ const LoginMagicLink: React.FC<{ navigation: any }> = ({ navigation }) => {
                             disabled={loading || !email}
                             loading={loading}
                         />
-                        {!!error && <ErrorMessage message={error} />}
                         {/* DEV : accès à la page de modes de connexion dev/admin */}
                         {__DEV__ && (
                             <View style={{ marginTop: 12 }}>

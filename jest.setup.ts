@@ -2,6 +2,7 @@
 
 // Étend jest-native pour les matchers supplémentaires
 import "@testing-library/jest-native/extend-expect";
+// @ts-ignore - types optionnels non nécessaires dans le contexte de test
 import fetch from "node-fetch";
 
 // Sauvegarde des méthodes console originales (une seule fois)
@@ -25,14 +26,20 @@ console.warn = (msg?: any, ...args: any[]) => {
 
 // Filtrage de certaines erreurs connues non bloquantes
 console.error = (msg?: any, ...args: any[]) => {
-  if (
-    typeof msg === "string" &&
-    (
-      msg.includes("ViewPropTypes will be removed from React Native") || // Dépréciations RN
-      msg.includes("componentWillReceiveProps has been renamed")         // Lifecycle obsolète
-    )
-  ) {
-    return;
+  if (typeof msg === "string") {
+    const suppress = [
+      // Dépréciations / RN bruit
+      "ViewPropTypes will be removed from React Native",
+      "componentWillReceiveProps has been renamed",
+      // Warnings React Testing Library / act()
+      "inside a test was not wrapped in act",
+      // Imports (services d'import Supabase volontairement mockés en échec)
+      "[Import Reward] Supabase error:",
+      "[Import Reward] ERROR:",
+      "[Import] Supabase error:",
+      "[Import] ERROR:" ,
+    ].some((fragment) => msg.includes(fragment));
+    if (suppress) return;
   }
   originalError(msg, ...args);
 };

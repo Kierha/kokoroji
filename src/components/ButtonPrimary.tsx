@@ -15,6 +15,7 @@ interface ButtonPrimaryProps {
     buttonStyle?: ViewStyle | ViewStyle[];  // Ajout pour styles personnalisés
     textStyle?: TextStyle | TextStyle[];   // Ajout pour styles personnalisés
     testID?: string; // Ajout pour support test natif
+    compact?: boolean; // Réduction des paddings / largeur
 }
 
 /**
@@ -37,11 +38,13 @@ const ButtonPrimary: React.FC<ButtonPrimaryProps> = ({
     buttonStyle,
     textStyle,
     testID,
+    compact = false,
 }) => {
     return (
         <TouchableOpacity
             style={[
                 styles.button,
+                compact && styles.compact,
                 disabled ? styles.buttonDisabled : null,
                 styles.buttonShadow,
                 buttonStyle
@@ -73,8 +76,13 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         alignItems: "center",
         justifyContent: "center",
-        minWidth: 180,
         minHeight: 48,
+        minWidth: 180, // largeur par défaut conservée pour ne pas impacter les écrans existants
+    },
+    compact: {
+        paddingVertical: 10,
+        paddingHorizontal: 16,
+        minWidth: 140, // largeur réduite pour mode compact
     },
     buttonDisabled: {
         backgroundColor: "#B0B7C3", // --> Gris doux

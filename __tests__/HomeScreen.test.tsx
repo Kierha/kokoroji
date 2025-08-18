@@ -40,6 +40,8 @@ jest.mock("@react-navigation/native", () => ({
 
 jest.mock("../src/services/onboardingService", () => ({
     getParentName: jest.fn(() => Promise.resolve("Thomas")),
+    getFamily: jest.fn(() => Promise.resolve({ id: 1, name: "Famille Test", parentName: "Thomas" })),
+    getChildren: jest.fn(() => Promise.resolve([])),
 }));
 jest.mock("../src/services/logService", () => ({
     getPendingLogs: jest.fn(() => Promise.resolve([{}, {}])), // Force la synchro auto
@@ -76,6 +78,21 @@ describe("HomeScreen", () => {
             expect(getByText("Bienvenue,")).toBeTruthy();
             expect(getByText("Thomas !")).toBeTruthy();
             expect(getByText("0")).toBeTruthy();
+        });
+    });
+
+    it("affiche la somme des Koro-coins des enfants", async () => {
+        const { getByText } = render(<HomeScreen />);
+        // Simule des enfants avec des soldes
+        const onboarding = require("../src/services/onboardingService");
+        (onboarding.getChildren as jest.Mock).mockResolvedValueOnce([
+            { id: 10, familyId: 1, name: "Leo", birthdate: "2018-01-01", avatar: "🦊", korocoins: 12 },
+            { id: 11, familyId: 1, name: "Mia", birthdate: "2016-05-02", avatar: "🐻", korocoins: 23 },
+        ]);
+        // Forcer re-render déclenchant l'effet (astuce: attendre tick)
+        await act(async () => { await Promise.resolve(); });
+        await waitFor(() => {
+            expect(getByText("35")).toBeTruthy();
         });
     });
 

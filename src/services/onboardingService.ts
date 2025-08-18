@@ -244,8 +244,7 @@ export async function updateChild(
   childId: number,
   name: string,
   birthdate: string,
-  avatar?: string,
-  korocoins: number = 0
+  avatar?: string
 ): Promise<void> {
   try {
     const db = await getDatabaseAsync();
@@ -253,9 +252,10 @@ export async function updateChild(
     const safeBirthdate = escapeSql(birthdate);
     const safeAvatar = avatar ? escapeSql(avatar) : null;
 
+    // IMPORTANT: ne pas toucher au solde korocoins ici pour éviter réinitialisation involontaire.
     await db.runAsync(
-      `UPDATE children SET name = ?, birthdate = ?, avatar = ?, korocoins = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?;`,
-      [safeName, safeBirthdate, safeAvatar, korocoins, childId]
+      `UPDATE children SET name = ?, birthdate = ?, avatar = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?;`,
+      [safeName, safeBirthdate, safeAvatar, childId]
     );
   } catch (error) {
     console.error("[onboardingService] updateChild error:", error);

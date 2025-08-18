@@ -46,8 +46,8 @@ export default function EditProfileScreen({ route, navigation }: Props) {
     const [step, setStep] = useState<"family" | "children">("family");
     const [familyName, setFamilyName] = useState(family.name);
     const [parentName, setParentName] = useState(family.parentName);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [editedChildren, _setEditedChildren] = useState<ChildEdit[]>(children);
+    // Conserver les ids pour différencier modifications vs suppressions (state initial figé)
+    const [editedChildren] = useState<ChildEdit[]>(children);
 
     // Gestion modale suppression enfants
     const [showDeleteAlert, setShowDeleteAlert] = useState(false);
@@ -229,7 +229,8 @@ export default function EditProfileScreen({ route, navigation }: Props) {
                 />
             ) : (
                 <OnboardingChildren
-                    initialChildren={editedChildren}
+                    // On transmet les ids afin que le composant les préserve lors des modifications.
+                    initialChildren={editedChildren.map((c) => ({ id: c.id, name: c.name, birthdate: c.birthdate, avatar: c.avatar }))}
                     onValidate={handleFinishEdit}
                     mode="edit"
                 />

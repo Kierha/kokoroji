@@ -30,7 +30,9 @@ import { ChildrenList } from "../../../components/ChildrenList";
 /**
  * Propriétés pour un enfant.
  */
-type ChildInput = { name: string; birthdate: string; avatar: string };
+// NOTE: id est optionnel. Présent uniquement en mode édition (profil) pour conserver
+// la correspondance avec les enregistrements existants. En onboarding initial, il n'existe pas encore.
+type ChildInput = { id?: number; name: string; birthdate: string; avatar: string };
 
 /**
  * Props pour le mode onboarding (avec navigation)
@@ -105,7 +107,10 @@ export default function OnboardingChildren(props: Props) {
         }
         const childData = { name, birthdate, avatar };
         if (editingIdx !== null) {
-            setChildren((prev) => prev.map((c, i) => (i === editingIdx ? childData : c)));
+            // Préserver l'id existant lors de la modification en mode édition
+            setChildren((prev) =>
+                prev.map((c, i) => (i === editingIdx ? { ...(c.id ? { id: c.id } : {}), ...childData } : c))
+            );
             setEditingIdx(null);
         } else {
             setChildren((prev) => [...prev, childData]);
