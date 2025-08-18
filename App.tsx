@@ -7,6 +7,7 @@
  */
 
 import React, { useEffect, useState } from "react";
+import * as Sentry from 'sentry-expo';
 import { AuthProvider } from "./src/hooks/useAuth";
 import AppNavigator from "./src/navigation";
 import { initializeDatabase } from "./src/database/db";
@@ -22,6 +23,14 @@ import { checkAndPurgeLogs } from "./src/utils/purgeLogs";
  *
  * @returns JSX.Element - Composant principal de l’application.
  */
+// Initialisation Sentry (le plus tôt possible)
+Sentry.init({
+  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+  environment: process.env.EXPO_PUBLIC_ENV || 'development',
+  enableInExpoDevelopment: true,
+  debug: false,
+});
+
 export default function App() {
   const [dbReady, setDbReady] = useState(false);
 

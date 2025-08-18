@@ -12,6 +12,7 @@ import InputEmail from "../components/InputField";
 import ButtonPrimary from "../components/ButtonPrimary";
 import { colors } from "../styles/colors";
 import { sendMagicLink } from "../services/authService";
+import * as Sentry from 'sentry-expo';
 import { isValidEmail } from "../utils/email";
 import { mapMagicLinkError } from "../utils/errorMessages";
 import KoroLogo from "../assets/kokoroji-simple.png";
@@ -27,6 +28,9 @@ const LoginMagicLink: React.FC<{ navigation: any }> = ({ navigation }) => {
     const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [invalidCount, setInvalidCount] = useState(0);
+    const [attemptedEmails, setAttemptedEmails] = useState<string[]>([]);
+    const [reported, setReported] = useState(false);
 
 
     // Animation d'arrivée du logo
@@ -56,7 +60,32 @@ const LoginMagicLink: React.FC<{ navigation: any }> = ({ navigation }) => {
         setError("");
         if (!isValidEmail(email)) {
             setError("Adresse email invalide. Merci de corriger.");
+            setInvalidCount(c => {
+                const next = c + 1;
+                setAttemptedEmails(list => {
+                    const updated = [...list, email];
+                    if (next === 3 && !reported) {
+                        // @ts-ignore - démo: envoi d'un message métier avec contexte
+                        Sentry.Native.withScope(scope => {
+                            scope.setLevel('warning');
+                            scope.setExtra('attempts', next);
+                            scope.setExtra('emails', updated); // PII à retirer après démo
+                            Sentry.Native.captureMessage('auth_invalid_email_attempts');
+                        });
+                        setReported(true);
+                    }
+                    return updated;
+                });
+                return next;
+            });
             return;
+        }
+
+        // reset compteur si email valide
+        if (invalidCount > 0) {
+            setInvalidCount(0);
+            if (attemptedEmails.length) setAttemptedEmails([]);
+            if (reported) setReported(false);
         }
 
         setLoading(true);
@@ -79,6 +108,8 @@ const LoginMagicLink: React.FC<{ navigation: any }> = ({ navigation }) => {
             );
         }
         setEmail("");
+        if (reported) setReported(false); // reset après succès
+        if (attemptedEmails.length) setAttemptedEmails([]); // nettoyage
     };
 
     return (
