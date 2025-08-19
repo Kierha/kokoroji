@@ -25,7 +25,7 @@ export async function getRewardHistory(
         JOIN reward_custom r ON r.id = h.reward_id
         WHERE h.family_id = ?
     `;
-    const params: any[] = [String(family_id)];
+    const params: (string | number)[] = [String(family_id)];
 
     if (filter?.rewardId !== undefined) {
         query += ` AND h.reward_id = ?`;
@@ -49,7 +49,7 @@ export async function getRewardHistory(
     const results = await db.getAllAsync(query, params);
 
     // Transformation : parsing robuste des tableaux, conversion des types
-    return (results ?? []).map((row: any) => ({
+    return (results ?? []).map((row: Record<string, unknown>) => ({
         ...row,
         reward_id: isNaN(Number(row.reward_id)) ? row.reward_id : Number(row.reward_id),
         family_id: Number(row.family_id),
