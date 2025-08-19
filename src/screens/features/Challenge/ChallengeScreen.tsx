@@ -287,11 +287,15 @@ export default function ChallengeScreen() {
     };
 
     // Loader si données pas encore prêtes
-    // On n'attend plus obligatoirement importDone pour afficher le shell afin d'éviter des timeouts de test
-    if (loading && familyId === undefined) return <Loader />;
+    const showInitialLoader = loading && familyId === undefined;
 
     return (
         <SafeAreaView style={styles.safe} edges={["top"]}>
+            {showInitialLoader && (
+                <View style={styles.loaderOverlay} pointerEvents="none">
+                    <Loader />
+                </View>
+            )}
             {/* En-tête fixe */}
             <View style={styles.wrapper}>
                 <View style={[styles.fixedHeader, { paddingTop: Math.max(insets.top - 28, 0) }]}>
@@ -300,7 +304,7 @@ export default function ChallengeScreen() {
                         <TouchableOpacity onPress={() => navigation.goBack()}>
                             <Ionicons name="arrow-back" size={26} color={colors.mediumBlue} />
                         </TouchableOpacity>
-                        <Text style={styles.headerTitle}>Gérer mes défis</Text>
+                        <Text testID="challenge-title" style={styles.headerTitle}>Gérer mes défis</Text>
                         <View style={{ width: 26 }} />
                     </View>
 
@@ -674,5 +678,15 @@ const styles = StyleSheet.create({
     rightBtnWrapper: {
         flex: 1,
     },
+    loaderOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(234,250,255,0.8)'
+    }
 });
 
