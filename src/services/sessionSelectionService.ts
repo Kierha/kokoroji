@@ -215,6 +215,7 @@ export async function pickRandomEligibleDefi(config: SessionConfig): Promise<Raw
     return null;
   }
 
+  // Sonar S2245: usage intentionnel de Math.random (sélection UX non sensible, pas de besoin crypto)
   const pick = candidates[Math.floor(Math.random() * candidates.length)];
 
   await logDefiEvent("Défi proposé (random)", "info", {
@@ -264,6 +265,7 @@ export async function buildEligibleBundle(
   if (!target || pool.length === 0) {
     const shuffled = [...pool];
     for (let i = shuffled.length - 1; i > 0; i--) {
+    // Sonar S2245: shuffle de présentation local, sécurité non concernée
       const j = Math.floor(Math.random() * (i + 1));
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
@@ -295,6 +297,7 @@ export async function buildEligibleBundle(
     } else {
       for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
+    // Sonar S2245: randomisation simple pour varier les combinaisons testées
         [arr[i], arr[j]] = [arr[j], arr[i]];
       }
     }

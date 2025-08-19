@@ -2,11 +2,13 @@ import * as FileSystem from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
 import * as MediaLibrary from "expo-media-library";
 
+// Type minimal pour métadonnées EXIF consommées (clé/val arbitraires string/number)
+export interface ExifData { [k: string]: string | number | undefined; }
 export type PhotoResult = {
   uri: string;
   width?: number;
   height?: number;
-  exif?: Record<string, any> | null;
+  exif?: ExifData | null;
 };
 
 export type SavedPhoto = {
@@ -14,7 +16,7 @@ export type SavedPhoto = {
   savedToAlbum: boolean;
   width?: number;
   height?: number;
-  exif?: Record<string, any> | null;
+  exif?: ExifData | null;
 };
 
 const APP_BASE = FileSystem.documentDirectory + "Kokoroji/";
