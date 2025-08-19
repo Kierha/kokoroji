@@ -141,12 +141,3 @@ L’utilisation du code source est réservée à un usage pédagogique et person
 Consultez le Wiki ou le journal de versions pour suivre l’évolution du projet.
 
 ---
-
-## À compléter (à renseigner si tu veux rendre le fichier prêt à l’usage)
-
-- **Lien GitHub du repo** (à compléter)
-- **Contact mail** (à compléter)
-- **Lien vers le Wiki technique / documentation** (si créé)
-- **Badges CI/CD** (si pipeline actif)
-
----
