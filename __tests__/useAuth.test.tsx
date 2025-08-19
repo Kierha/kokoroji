@@ -1,116 +1,48 @@
-
 /**
- * Teste le hook personnalisé useAuth pour la gestion de l'état utilisateur et de la session.
- * Les appels à Supabase sont mockés pour isoler la logique métier du hook.
+ * Tests unitaires pour le hook useAuth
+ * Couvre : état initial, déconnexion (signOut) et mode bypass dev (signInDevUser)
  */
-import React from "react";
-import { render, act } from "@testing-library/react-native";
-import { useAuth } from "../src/hooks/useAuth";
+import React, { ReactNode } from 'react';
+import { renderHook, act } from '@testing-library/react';
+import { AuthProvider, useAuth } from '../src/hooks/useAuth';
+import { supabase } from '../src/services/supabaseClient';
 
-
-// Mock du client Supabase pour simuler les réponses d'authentification
-jest.mock("../src/services/supabaseClient", () => ({
-    supabase: {
-        auth: {
-            getUser: jest.fn(),
-            signOut: jest.fn(),
-            onAuthStateChange: jest.fn(),
-        },
-    },
+// Mock Supabase pour hook useAuth
+jest.mock('../src/services/supabaseClient', () => ({
+    supabase: { auth: { signOut: jest.fn(), signInWithOtp: jest.fn(), signInWithPassword: jest.fn(), getSession: jest.fn(() => ({ data: { session: null } })), onAuthStateChange: jest.fn(() => ({ data: { subscription: { unsubscribe: jest.fn() } } })) } }
 }));
 
+const Wrapper = ({ children }: { children: ReactNode }) => (
+    <AuthProvider>{children}</AuthProvider>
+);
 
-// Récupération du mock pour configurer les retours dans chaque test
-const { supabase } = require("../src/services/supabaseClient");
+describe('useAuth', () => {
+    beforeEach(() => jest.clearAllMocks());
 
-
-/**
- * Composant utilitaire pour tester la valeur retournée par le hook useAuth.
- * Permet de récupérer l'état du hook dans les tests unitaires.
- * @param onValue Callback appelée à chaque changement de valeur du hook
- * @returns null
- */
-function HookTest({ onValue }: { onValue: (value: any) => void }) {
-    const value = useAuth();
-    React.useEffect(() => {
-        onValue(value);
-    }, [value, onValue]);
-    return null;
-}
-
-describe.skip("useAuth", () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
+    /**
+     * Vérifie l'état initial : aucun utilisateur authentifié.
+     */
+    it('initialise avec user null', () => {
+        const { result } = renderHook(() => useAuth(), { wrapper: Wrapper });
+        expect(result.current.user).toBeNull();
     });
 
     /**
-     * Vérifie que l'utilisateur est bien récupéré au démarrage du hook.
-     * Simule la récupération de l'utilisateur et l'abonnement aux changements de session.
+     * Vérifie que signOut appelle Supabase et réinitialise l'utilisateur.
      */
-    it("récupère l'utilisateur au démarrage", async () => {
-        supabase.auth.getUser.mockResolvedValue({ data: { user: { id: "1" } } });
-        supabase.auth.onAuthStateChange.mockReturnValue({
-            data: { subscription: { unsubscribe: jest.fn() } },
-        });
-
-        let hookValue: any;
-        await act(async () => {
-            render(<HookTest onValue={v => { hookValue = v; }} />);
-            await Promise.resolve();
-        });
-
-        expect(hookValue.user).toEqual({ id: "1" });
-        expect(hookValue.loading).toBe(false);
-    });
-
-    /**
-     * Vérifie la mise à jour de l'utilisateur lors d'un changement de session.
-     * Simule un événement SIGNED_IN et vérifie la mise à jour du hook.
-     */
-    it("met à jour l'utilisateur lors d'un changement de session", async () => {
-        let callback: any;
-        supabase.auth.getUser.mockResolvedValue({ data: { user: null } });
-        supabase.auth.onAuthStateChange.mockImplementation((cb: any) => {
-            callback = cb;
-            return { data: { subscription: { unsubscribe: jest.fn() } } };
-        });
-
-        let hookValue: any;
-        await act(async () => {
-            render(<HookTest onValue={v => { hookValue = v; }} />);
-            await Promise.resolve();
-        });
-
-        act(() => {
-            callback("SIGNED_IN", { user: { id: "2" } });
-        });
-
-        expect(hookValue.user).toEqual({ id: "2" });
-        expect(hookValue.loading).toBe(false);
-    });
-
-    /**
-     * Vérifie la déconnexion de l'utilisateur via la méthode signOut du hook.
-     * Simule la déconnexion et vérifie la remise à zéro de l'utilisateur.
-     */
-    it("déconnecte l'utilisateur avec signOut", async () => {
-        supabase.auth.getUser.mockResolvedValue({ data: { user: { id: "1" } } });
-        supabase.auth.onAuthStateChange.mockReturnValue({
-            data: { subscription: { unsubscribe: jest.fn() } },
-        });
-        supabase.auth.signOut.mockResolvedValue({});
-
-        let hookValue: any;
-        await act(async () => {
-            render(<HookTest onValue={v => { hookValue = v; }} />);
-            await Promise.resolve();
-        });
-
-        await act(async () => {
-            await hookValue.signOut();
-        });
-
+    it('signOut appelle supabase et reset user', async () => {
+        const { result } = renderHook(() => useAuth(), { wrapper: Wrapper });
+        await act(async () => { await result.current.signOut(); });
         expect(supabase.auth.signOut).toHaveBeenCalled();
-        expect(hookValue.user).toBeNull();
+        expect(result.current.user).toBeNull();
+    });
+
+    /**
+     * Vérifie que le mode bypass dev crée un utilisateur simulé.
+     */
+    it('signInDevUser crée un user bypass', () => {
+        const { result } = renderHook(() => useAuth(), { wrapper: Wrapper });
+        act(() => { result.current.signInDevUser(); });
+        expect(result.current.user?.email).toBe('dev@kokoroji.com');
     });
 });
