@@ -39,7 +39,7 @@ export async function getSessionHistory(
   const db = await getDatabaseAsync();
 
   const where: string[] = ["s.family_id = ?"];
-  const params: any[] = [String(familyId)];
+  const params: (string | number)[] = [String(familyId)];
 
   const startIso = toIsoStart(filters.startDate);
   const endIso = toIsoEnd(filters.endDate);
@@ -88,26 +88,27 @@ export async function getSessionHistory(
       params
     );
 
-    const list: SessionHistoryEntry[] = (rows ?? []).map((r: any) => {
+    const list: SessionHistoryEntry[] = (rows ?? []).map((r: Record<string, unknown>) => {
       let participants: number[] = [];
       try {
-        participants = r?.children_ids ? JSON.parse(r.children_ids) : [];
-        if (!Array.isArray(participants)) participants = [];
+        const raw = typeof (r as any).children_ids === 'string' ? (r as any).children_ids : '[]';
+        const parsed = JSON.parse(raw);
+        participants = Array.isArray(parsed) ? parsed.filter((x: unknown) => typeof x === 'number').map(Number) : [];
       } catch {
         participants = [];
       }
       return {
-        id: Number(r.id),
-        family_id: Number(r.family_id),
-        started_at: String(r.started_at),
-        ended_at: r.ended_at ? String(r.ended_at) : null,
-        session_type: r.session_type ?? null,
-        location: r.location ?? null,
-        planned_duration_min: r.planned_duration_min !== null ? Number(r.planned_duration_min) : null,
+        id: Number((r as any).id),
+        family_id: Number((r as any).family_id),
+        started_at: String((r as any).started_at),
+        ended_at: (r as any).ended_at ? String((r as any).ended_at) : null,
+        session_type: (r as any).session_type ?? null,
+        location: (r as any).location ?? null,
+        planned_duration_min: (r as any).planned_duration_min !== null ? Number((r as any).planned_duration_min) : null,
         participants,
-        defis_count: Number(r.defis_count ?? 0),
-        coins_sum: Number(r.coins_sum ?? 0),
-        media_count: Number(r.media_count ?? 0),
+        defis_count: Number((r as any).defis_count ?? 0),
+        coins_sum: Number((r as any).coins_sum ?? 0),
+        media_count: Number((r as any).media_count ?? 0),
       };
     });
 
