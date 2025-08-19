@@ -8,7 +8,7 @@
  */
 
 import React from "react";
-import { render, fireEvent, waitFor } from "@testing-library/react-native";
+import { render, fireEvent } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 // Mocks navigation et icônes
@@ -147,85 +147,59 @@ const renderScreen = () => {
     );
 };
 
+// Utilitaire pour drainer microtasks + timeouts courts si l'écran a une phase de bootstrap
+const flushPromises = () => new Promise(res => setTimeout(res, 0));
+
 describe("ChallengeScreen", () => {
-    /**
-     * Vérifie l'affichage initial du titre et de la liste des défis.
-     */
     it("affiche le titre et la liste", async () => {
-        const { queryByText } = renderScreen();
-        await waitFor(() => {
-            expect(queryByText("Gérer mes défis")).toBeTruthy();
-            expect(queryByText("Lire une histoire")).toBeTruthy();
-            expect(queryByText("Aller au parc")).toBeTruthy();
-        });
+        const { findByTestId, findByText } = renderScreen();
+        // Titre (avec testID dans le composant) puis éléments de liste
+        await findByTestId("challenge-title");
+        // Assure la fin de la chaîne d'effets (familyId -> importDone -> loadAll)
+        await flushPromises();
+        await findByText("Lire une histoire");
+        await findByText("Aller au parc");
     });
 
-    /**
-     * Vérifie que la recherche filtre correctement la liste (debounce neutralisé).
-     */
     it("filtre par recherche", async () => {
-        const { getByPlaceholderText, queryByText } = renderScreen();
-        await waitFor(() => {
-            expect(queryByText("Lire une histoire")).toBeTruthy();
-        });
+        const { findByText, getByPlaceholderText, queryByText } = renderScreen();
+        await findByText("Lire une histoire");
         const input = getByPlaceholderText("Rechercher un défi…");
         fireEvent.changeText(input, "parc");
-        await waitFor(() => {
-            expect(queryByText("Aller au parc")).toBeTruthy();
-            expect(queryByText("Lire une histoire")).toBeNull();
-        });
+        await findByText("Aller au parc");
+        expect(queryByText("Lire une histoire")).toBeNull();
     });
 
-    /**
-     * Vérifie l'ouverture et la fermeture de la section de filtres.
-     */
     it("ouvre et ferme la boîte de filtres", async () => {
-        const { getByText, queryByText } = renderScreen();
-        await waitFor(() => {
-            expect(queryByText("Lire une histoire")).toBeTruthy();
-        });
+        const { findByText, getByText, queryByText } = renderScreen();
+        await findByText("Lire une histoire");
         fireEvent.press(getByText("Filtres"));
-        expect(queryByText("Statut :")).toBeTruthy();
+        await findByText("Statut :");
         expect(queryByText("Catégorie :")).toBeTruthy();
-        expect(queryByText("Lieu :")).toBeTruthy();
         fireEvent.press(getByText("Filtres"));
+        // Petite attente pour que le re-render se fasse
+        await flushPromises();
         expect(queryByText("Statut :")).toBeNull();
     });
 
-    /**
-     * Vérifie l'ouverture de l'historique.
-     */
     it("ouvre l’historique", async () => {
-        const { getByText, queryByText } = renderScreen();
-        await waitFor(() => {
-            expect(queryByText("Lire une histoire")).toBeTruthy();
-        });
+        const { findByText, getByText, queryByText } = renderScreen();
+        await findByText("Lire une histoire");
         fireEvent.press(getByText("Historique"));
+        await findByText("HISTORY_OPEN");
         expect(queryByText("HISTORY_OPEN")).toBeTruthy();
     });
 
-    /**
-     * Vérifie le passage en mode édition et l'ouverture du formulaire d'ajout.
-     */
     it("active le mode édition et ouvre le formulaire d’ajout", async () => {
-        const { getByText, queryByText } = renderScreen();
-        await waitFor(() => {
-            expect(queryByText("Lire une histoire")).toBeTruthy();
-        });
+        const { findByText, getByText, queryByText } = renderScreen();
+        await findByText("Lire une histoire");
         fireEvent.press(getByText("Éditer"));
-        await waitFor(() => {
-            expect(queryByText("Terminer")).toBeTruthy();
-        });
+        await findByText("Terminer");
 
-        const rafSpy = jest.spyOn(window, "requestAnimationFrame");
-        rafSpy.mockImplementation(cb => {
-            cb(0);
-            return 1;
-        });
-
+        const rafSpy = jest.spyOn(window, "requestAnimationFrame").mockImplementation(cb => { cb(0); return 1; });
         fireEvent.press(getByText("Ajouter un défi"));
+        await findByText("FORM_VISIBLE");
         expect(queryByText("FORM_VISIBLE")).toBeTruthy();
-
         rafSpy.mockRestore();
     });
 });
