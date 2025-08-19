@@ -21,6 +21,7 @@ import {
 import { proposeAndImportDefaultChallengesCloud } from "../../../services/challengeImportService";
 import { isChallengesImported, setChallengesImported } from "../../../services/settingsFlagsService";
 import { getFamily } from "../../../services/onboardingService";
+import { logAndMaybeReport } from "../../../services/errorReporting";
 
 import DefiItem from "../../../components/ChallengeItem";
 import DefiForm from "../../../components/ChallengeForm";
@@ -145,10 +146,11 @@ export default function ChallengeScreen() {
             destructive: false,
             title: "Importer les défis Kokoroji ?",
             message: "Voulez-vous importer la liste de défis proposée par Kokoroji ?",
-            onConfirm: async () => {
+            // Sonar Reliability onConfirm sans retour Promise
+            onConfirm: () => {
                 setAlert(a => ({ ...a, visible: false }));
                 setLoading(true);
-                await new Promise<void>(resolve => {
+                new Promise<void>(resolve => {
                     proposeAndImportDefaultChallengesCloud(familyId, {
                         onImportSuccess: async () => {
                             await setChallengesImported(true);
@@ -162,12 +164,18 @@ export default function ChallengeScreen() {
                             resolve();
                         },
                     });
-                });
-                setLoading(false);
+                })
+                    .catch(err => {
+                        // Journalisation structurée + bruit console limité en dev
+                        void logAndMaybeReport('Import Defi - ChallengeScreen prompt', err, { logType: 'defi_import', sentry: false });
+                        if (__DEV__) console.warn("Import défaut échoué", err); // Dev only
+                    })
+                    .finally(() => setLoading(false));
             },
-            onCancel: async () => {
+            onCancel: () => {
                 setAlert(a => ({ ...a, visible: false }));
-                await setChallengesImported(true);
+                // Pas besoin d'async ici
+                void setChallengesImported(true);
                 setImportDone(true);
             },
         });
@@ -315,7 +323,8 @@ export default function ChallengeScreen() {
                                     { id: "todo", label: "À faire" },
                                 ]}
                                 selected={statusFilter}
-                                onSelect={id => setStatusFilter(id as any)}
+                                // Typage explicite (options -> union) au lieu de cast any
+                                onSelect={(id: string) => setStatusFilter(id as "all" | "done" | "todo")}
                             />
                             <FilterRow
                                 label="Catégorie :"
