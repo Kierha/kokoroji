@@ -8,7 +8,7 @@
  */
 
 import React from "react";
-import { render, fireEvent } from "@testing-library/react-native";
+import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 // Mocks navigation et icônes
@@ -147,81 +147,85 @@ const renderScreen = () => {
     );
 };
 
-// Utilitaire pour drainer microtasks + timeouts courts si l'écran a une phase de bootstrap
-const flush = () => new Promise(res => setTimeout(res, 0));
-
 describe("ChallengeScreen", () => {
     /**
-     * Affichage initial: le titre apparaît après le loader puis les défis mockés se chargent.
-     * L'appel à flush() garantit que la seconde phase (loadAll) a eu le temps de finir.
+     * Vérifie l'affichage initial du titre et de la liste des défis.
      */
     it("affiche le titre et la liste", async () => {
-        const { findByText } = renderScreen();
-        // Attendre le titre (rendu après le loader)
-        await findByText("Gérer mes défis");
-        // Laisser finir les chargements (loadAll après import)
-        await flush();
-        await findByText("Lire une histoire");
-        await findByText("Aller au parc");
+        const { queryByText } = renderScreen();
+        await waitFor(() => {
+            expect(queryByText("Gérer mes défis")).toBeTruthy();
+            expect(queryByText("Lire une histoire")).toBeTruthy();
+            expect(queryByText("Aller au parc")).toBeTruthy();
+        });
     });
 
     /**
-     * Recherche: saisie 'parc' doit filtrer et cacher le premier défi.
-     * Le debounce est neutralisé par le mock du hook.
+     * Vérifie que la recherche filtre correctement la liste (debounce neutralisé).
      */
     it("filtre par recherche", async () => {
-        const { findByText, getByPlaceholderText, queryByText } = renderScreen();
-        await findByText("Gérer mes défis");
-        await findByText("Lire une histoire");
+        const { getByPlaceholderText, queryByText } = renderScreen();
+        await waitFor(() => {
+            expect(queryByText("Lire une histoire")).toBeTruthy();
+        });
         const input = getByPlaceholderText("Rechercher un défi…");
         fireEvent.changeText(input, "parc");
-        await findByText("Aller au parc");
-        expect(queryByText("Lire une histoire")).toBeNull();
+        await waitFor(() => {
+            expect(queryByText("Aller au parc")).toBeTruthy();
+            expect(queryByText("Lire une histoire")).toBeNull();
+        });
     });
 
     /**
-     * Filtres: ouverture puis fermeture en pressant le bouton 'Filtres'.
-     * On attend un petit flush pour laisser le re-render retirer le contenu.
+     * Vérifie l'ouverture et la fermeture de la section de filtres.
      */
     it("ouvre et ferme la boîte de filtres", async () => {
-        const { findByText, getByText, queryByText } = renderScreen();
-        await findByText("Gérer mes défis");
-        await findByText("Lire une histoire");
+        const { getByText, queryByText } = renderScreen();
+        await waitFor(() => {
+            expect(queryByText("Lire une histoire")).toBeTruthy();
+        });
         fireEvent.press(getByText("Filtres"));
-        await findByText("Statut :");
+        expect(queryByText("Statut :")).toBeTruthy();
         expect(queryByText("Catégorie :")).toBeTruthy();
+        expect(queryByText("Lieu :")).toBeTruthy();
         fireEvent.press(getByText("Filtres"));
-        // Petite attente pour que le re-render se fasse
-        await flush();
         expect(queryByText("Statut :")).toBeNull();
     });
 
     /**
-     * Historique: le bouton déclenche l'affichage de la modale HISTORY_OPEN mockée.
+     * Vérifie l'ouverture de l'historique.
      */
     it("ouvre l’historique", async () => {
-        const { findByText, getByText, queryByText } = renderScreen();
-        await findByText("Gérer mes défis");
-        await findByText("Lire une histoire");
+        const { getByText, queryByText } = renderScreen();
+        await waitFor(() => {
+            expect(queryByText("Lire une histoire")).toBeTruthy();
+        });
         fireEvent.press(getByText("Historique"));
-        await findByText("HISTORY_OPEN");
         expect(queryByText("HISTORY_OPEN")).toBeTruthy();
     });
 
     /**
-     * Edition + ajout: passage en mode édition puis ouverture de la modale formulaire (REQUEST ANIMATION FRAME mocké).
+     * Vérifie le passage en mode édition et l'ouverture du formulaire d'ajout.
      */
     it("active le mode édition et ouvre le formulaire d’ajout", async () => {
-        const { findByText, getByText, queryByText } = renderScreen();
-        await findByText("Gérer mes défis");
-        await findByText("Lire une histoire");
+        const { getByText, queryByText } = renderScreen();
+        await waitFor(() => {
+            expect(queryByText("Lire une histoire")).toBeTruthy();
+        });
         fireEvent.press(getByText("Éditer"));
-        await findByText("Terminer");
+        await waitFor(() => {
+            expect(queryByText("Terminer")).toBeTruthy();
+        });
 
-        const rafSpy = jest.spyOn(window, "requestAnimationFrame").mockImplementation(cb => { cb(0); return 1; });
+        const rafSpy = jest.spyOn(window, "requestAnimationFrame");
+        rafSpy.mockImplementation(cb => {
+            cb(0);
+            return 1;
+        });
+
         fireEvent.press(getByText("Ajouter un défi"));
-        await findByText("FORM_VISIBLE");
         expect(queryByText("FORM_VISIBLE")).toBeTruthy();
+
         rafSpy.mockRestore();
     });
 });

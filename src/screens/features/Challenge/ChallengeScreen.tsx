@@ -21,7 +21,6 @@ import {
 import { proposeAndImportDefaultChallengesCloud } from "../../../services/challengeImportService";
 import { isChallengesImported, setChallengesImported } from "../../../services/settingsFlagsService";
 import { getFamily } from "../../../services/onboardingService";
-import { logAndMaybeReport } from "../../../services/errorReporting";
 
 import DefiItem from "../../../components/ChallengeItem";
 import DefiForm from "../../../components/ChallengeForm";
@@ -76,10 +75,7 @@ export default function ChallengeScreen() {
     const [familyId, setFamilyId] = useState<number>();
     const [allChallenges, setAllChallenges] = useState<Defi[]>([]);
     const [history, setHistory] = useState<DefiHistory[]>([]);
-    const isTestEnvRef = React.useRef(
-        typeof process !== 'undefined' && (process as any).env?.JEST_WORKER_ID !== undefined
-    );
-    const [loading, setLoading] = useState(!isTestEnvRef.current);
+    const [loading, setLoading] = useState(true);
     const [importDone, setImportDone] = useState<boolean | null>(null);
 
     const [modalVisible, setModalVisible] = useState(false);
@@ -120,48 +116,15 @@ export default function ChallengeScreen() {
 
     // Récupération initiale de la famille et état import
     useEffect(() => {
-        if (isTestEnvRef.current) {
-            // Dans les tests: on mock les services, on charge immédiatement les données pour éviter les timeouts.
-            (async () => {
-                try {
-                    const fam = await getFamily();
-                    if (fam?.id) {
-                        const fid = Number(fam.id);
-                        setFamilyId(fid);
-                        setImportDone(true);
-                        try {
-                            const [chs, histo] = await Promise.all([
-                                getAllChallenges(fid),
-                                getDefiHistory(fid),
-                            ]);
-                            setAllChallenges(chs);
-                            setHistory(histo);
-                        } catch { /* ignore load errors in test */ }
-                    }
-                } catch { /* ignore family load error in test */ }
-            })();
-            return;
-        }
-        let finished = false;
-        const fallback = setTimeout(() => { if (!finished) setLoading(false); }, 120);
         (async () => {
             setLoading(true);
-            try {
-                const fam = await getFamily();
-                if (fam?.id) {
-                    setFamilyId(Number(fam.id));
-                    try {
-                        const imported = await isChallengesImported();
-                        setImportDone(imported);
-                    } catch { /* ignore flag read error */ }
-                }
-            } finally {
-                finished = true;
-                setLoading(false);
-                clearTimeout(fallback);
+            const fam = await getFamily();
+            if (fam?.id) {
+                setFamilyId(Number(fam.id));
+                setImportDone(await isChallengesImported());
             }
+            setLoading(false);
         })();
-        return () => { finished = true; clearTimeout(fallback); };
     }, []);
 
     // Charge les données une fois import effectué
@@ -182,11 +145,10 @@ export default function ChallengeScreen() {
             destructive: false,
             title: "Importer les défis Kokoroji ?",
             message: "Voulez-vous importer la liste de défis proposée par Kokoroji ?",
-            // Sonar Reliability onConfirm sans retour Promise
-            onConfirm: () => {
+            onConfirm: async () => {
                 setAlert(a => ({ ...a, visible: false }));
                 setLoading(true);
-                new Promise<void>(resolve => {
+                await new Promise<void>(resolve => {
                     proposeAndImportDefaultChallengesCloud(familyId, {
                         onImportSuccess: async () => {
                             await setChallengesImported(true);
@@ -200,17 +162,12 @@ export default function ChallengeScreen() {
                             resolve();
                         },
                     });
-                })
-                    .catch(err => {
-                        // Journalisation structurée + bruit console limité en dev
-                        void logAndMaybeReport('Import Defi - ChallengeScreen prompt', err, { logType: 'defi_import', sentry: false });
-                        if (__DEV__) console.warn("Import défaut échoué", err); // Dev only
-                    })
-                    .finally(() => setLoading(false));
+                });
+                setLoading(false);
             },
-            onCancel: () => {
+            onCancel: async () => {
                 setAlert(a => ({ ...a, visible: false }));
-                void setChallengesImported(true);
+                await setChallengesImported(true);
                 setImportDone(true);
             },
         });
@@ -312,15 +269,10 @@ export default function ChallengeScreen() {
     };
 
     // Loader si données pas encore prêtes
-    const showInitialLoader = loading && familyId === undefined;
+    if (loading || familyId === undefined || importDone === null) return <Loader />;
 
     return (
         <SafeAreaView style={styles.safe} edges={["top"]}>
-            {showInitialLoader && (
-                <View style={styles.loaderOverlay} pointerEvents="none">
-                    <Loader />
-                </View>
-            )}
             {/* En-tête fixe */}
             <View style={styles.wrapper}>
                 <View style={[styles.fixedHeader, { paddingTop: Math.max(insets.top - 28, 0) }]}>
@@ -329,7 +281,7 @@ export default function ChallengeScreen() {
                         <TouchableOpacity onPress={() => navigation.goBack()}>
                             <Ionicons name="arrow-back" size={26} color={colors.mediumBlue} />
                         </TouchableOpacity>
-                        <Text testID="challenge-title" style={styles.headerTitle}>Gérer mes défis</Text>
+                        <Text style={styles.headerTitle}>Gérer mes défis</Text>
                         <View style={{ width: 26 }} />
                     </View>
 
@@ -363,8 +315,7 @@ export default function ChallengeScreen() {
                                     { id: "todo", label: "À faire" },
                                 ]}
                                 selected={statusFilter}
-                                // Typage explicite (options -> union) au lieu de cast any
-                                onSelect={(id: string) => setStatusFilter(id as "all" | "done" | "todo")}
+                                onSelect={id => setStatusFilter(id as any)}
                             />
                             <FilterRow
                                 label="Catégorie :"
@@ -703,15 +654,5 @@ const styles = StyleSheet.create({
     rightBtnWrapper: {
         flex: 1,
     },
-    loaderOverlay: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'rgba(234,250,255,0.8)'
-    }
 });
 
