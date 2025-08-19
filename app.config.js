@@ -1,15 +1,14 @@
-// app.config.js
 export default {
   expo: {
-    name: "kokoroji-app",
+    name: "KOKOROJI",
     slug: "kokoroji-app",
     version: "1.0.0",
     orientation: "portrait",
-    icon: "./assets/icon.png",
+    icon: "./src/assets/logo-kokoroji.png",
     userInterfaceStyle: "light",
     newArchEnabled: true,
     splash: {
-      image: "./assets/splash-icon.png",
+      image: "./src/assets/kokoroji-simple.png",
       resizeMode: "contain",
       backgroundColor: "#ffffff",
     },
@@ -22,21 +21,24 @@ export default {
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: "./assets/adaptive-icon.png",
+        foregroundImage: "./src/assets/logo-kokoroji.png",
         backgroundColor: "#ffffff",
       },
       edgeToEdgeEnabled: true,
       package: "com.korosphere.kokorojiapp",
     },
     web: {
-      favicon: "./assets/favicon.png",
+      favicon: "./src/assets/logo-kokoroji.png",
     },
     extra: {
       EXPO_PUBLIC_SUPABASE_URL: process.env.EXPO_PUBLIC_SUPABASE_URL,
       EXPO_PUBLIC_SUPABASE_KEY: process.env.EXPO_PUBLIC_SUPABASE_KEY,
+      EXPO_PUBLIC_SENTRY_DSN: process.env.EXPO_PUBLIC_SENTRY_DSN,
+      EXPO_PUBLIC_ENV: process.env.EXPO_PUBLIC_ENV,
       eas: {
         projectId: "4a120cfd-4230-4cb7-ade3-9de3b893f5ca",
       },
     },
+    plugins: ["expo-sqlite", "sentry-expo"],
   },
 };
