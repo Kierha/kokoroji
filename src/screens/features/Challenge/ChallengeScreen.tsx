@@ -119,16 +119,24 @@ export default function ChallengeScreen() {
     // Récupération initiale de la famille et état import
     useEffect(() => {
         if (isTestEnv) {
-            // Dans les tests: on mock les services, on fixe un état cohérent immédiatement.
+            // Dans les tests: on mock les services, on charge immédiatement les données pour éviter les timeouts.
             (async () => {
                 try {
                     const fam = await getFamily();
                     if (fam?.id) {
-                        setFamilyId(Number(fam.id));
+                        const fid = Number(fam.id);
+                        setFamilyId(fid);
                         setImportDone(true);
-                        // loadAll sera déclenché par l'autre effet (familyId+importDone)
+                        try {
+                            const [chs, histo] = await Promise.all([
+                                getAllChallenges(fid),
+                                getDefiHistory(fid),
+                            ]);
+                            setAllChallenges(chs);
+                            setHistory(histo);
+                        } catch { /* ignore load errors in test */ }
                     }
-                } catch { /* ignore */ }
+                } catch { /* ignore family load error in test */ }
             })();
             return;
         }

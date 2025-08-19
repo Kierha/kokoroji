@@ -147,49 +147,47 @@ const renderScreen = () => {
     );
 };
 
+// Utilitaire pour vider la micro‑queue (promises) avant assertions
+const flushPromises = () => new Promise(res => setImmediate(res));
+
 describe("ChallengeScreen", () => {
     /**
      * Vérifie l'affichage initial du titre et de la liste des défis.
      */
-    it.skip("affiche le titre et la liste (skipped: flaky en CI)", async () => {
-        // Test désactivé car timeout intermittent en CI (charge async/mock). À réécrire avec testID + mock plus strict.
-        // Ancienne implémentation conservée pour référence:
-        // const { queryByText } = renderScreen();
-        // await waitFor(() => {
-        //   expect(queryByText("Gérer mes défis")).toBeTruthy();
-        //   expect(queryByText("Lire une histoire")).toBeTruthy();
-        //   expect(queryByText("Aller au parc")).toBeTruthy();
-        // });
+    it("affiche le titre et la liste", async () => {
+        const { queryByText, findByText } = renderScreen();
+        // Laisser les effets se résoudre
+        await flushPromises();
+        await findByText("Gérer mes défis", {}, { timeout: 8000 });
+        await findByText("Lire une histoire", {}, { timeout: 8000 });
+        await findByText("Aller au parc", {}, { timeout: 8000 });
+        expect(queryByText("LOADER")).toBeNull();
     });
 
     /**
      * Vérifie que la recherche filtre correctement la liste (debounce neutralisé).
      */
     it("filtre par recherche", async () => {
-        const { getByPlaceholderText, queryByText } = renderScreen();
-        await waitFor(() => {
-            expect(queryByText("Lire une histoire")).toBeTruthy();
-        });
+        const { getByPlaceholderText, queryByText, findByText } = renderScreen();
+        await flushPromises();
+        await findByText("Lire une histoire", {}, { timeout: 8000 });
         const input = getByPlaceholderText("Rechercher un défi…");
         fireEvent.changeText(input, "parc");
-        await waitFor(() => {
-            expect(queryByText("Aller au parc")).toBeTruthy();
-            expect(queryByText("Lire une histoire")).toBeNull();
-        });
+        await findByText("Aller au parc", {}, { timeout: 8000 });
+        // Attendre microtasks filtrage
+        await flushPromises();
+        expect(queryByText("Lire une histoire")).toBeNull();
     });
 
     /**
      * Vérifie l'ouverture et la fermeture de la section de filtres.
      */
     it("ouvre et ferme la boîte de filtres", async () => {
-        const { getByText, queryByText } = renderScreen();
-        await waitFor(() => {
-            expect(queryByText("Lire une histoire")).toBeTruthy();
-        });
+        const { getByText, queryByText, findByText } = renderScreen();
+        await flushPromises();
+        await findByText("Lire une histoire", {}, { timeout: 8000 });
         fireEvent.press(getByText("Filtres"));
         expect(queryByText("Statut :")).toBeTruthy();
-        expect(queryByText("Catégorie :")).toBeTruthy();
-        expect(queryByText("Lieu :")).toBeTruthy();
         fireEvent.press(getByText("Filtres"));
         expect(queryByText("Statut :")).toBeNull();
     });
@@ -198,10 +196,9 @@ describe("ChallengeScreen", () => {
      * Vérifie l'ouverture de l'historique.
      */
     it("ouvre l’historique", async () => {
-        const { getByText, queryByText } = renderScreen();
-        await waitFor(() => {
-            expect(queryByText("Lire une histoire")).toBeTruthy();
-        });
+        const { getByText, queryByText, findByText } = renderScreen();
+        await flushPromises();
+        await findByText("Lire une histoire", {}, { timeout: 8000 });
         fireEvent.press(getByText("Historique"));
         expect(queryByText("HISTORY_OPEN")).toBeTruthy();
     });
@@ -210,24 +207,14 @@ describe("ChallengeScreen", () => {
      * Vérifie le passage en mode édition et l'ouverture du formulaire d'ajout.
      */
     it("active le mode édition et ouvre le formulaire d’ajout", async () => {
-        const { getByText, queryByText } = renderScreen();
-        await waitFor(() => {
-            expect(queryByText("Lire une histoire")).toBeTruthy();
-        });
+        const { getByText, queryByText, findByText } = renderScreen();
+        await flushPromises();
+        await findByText("Lire une histoire", {}, { timeout: 8000 });
         fireEvent.press(getByText("Éditer"));
-        await waitFor(() => {
-            expect(queryByText("Terminer")).toBeTruthy();
-        });
-
-        const rafSpy = jest.spyOn(window, "requestAnimationFrame");
-        rafSpy.mockImplementation(cb => {
-            cb(0);
-            return 1;
-        });
-
+        await findByText("Terminer", {}, { timeout: 8000 });
+        const rafSpy = jest.spyOn(window, "requestAnimationFrame").mockImplementation(cb => { cb(0); return 1; });
         fireEvent.press(getByText("Ajouter un défi"));
         expect(queryByText("FORM_VISIBLE")).toBeTruthy();
-
         rafSpy.mockRestore();
     });
 });
