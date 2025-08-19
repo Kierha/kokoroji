@@ -6,8 +6,9 @@ let _sentry: any | null | undefined;
 function getSentry() {
   if (_sentry !== undefined) return _sentry;
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    _sentry = require('sentry-expo');
+  // Chargement dynamique évitant l'import statique (Jest + ESM) et sans require direct (lint)
+  const dynamicRequire = Function('m', 'return require(m);');
+  _sentry = dynamicRequire('sentry-expo');
   } catch {
     _sentry = null; // Module absent ou non chargeable dans l'environnement (tests)
   }

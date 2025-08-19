@@ -76,8 +76,10 @@ export default function ChallengeScreen() {
     const [familyId, setFamilyId] = useState<number>();
     const [allChallenges, setAllChallenges] = useState<Defi[]>([]);
     const [history, setHistory] = useState<DefiHistory[]>([]);
-    const isTestEnv = typeof process !== 'undefined' && (process as any).env?.JEST_WORKER_ID !== undefined;
-    const [loading, setLoading] = useState(!isTestEnv);
+    const isTestEnvRef = React.useRef(
+        typeof process !== 'undefined' && (process as any).env?.JEST_WORKER_ID !== undefined
+    );
+    const [loading, setLoading] = useState(!isTestEnvRef.current);
     const [importDone, setImportDone] = useState<boolean | null>(null);
 
     const [modalVisible, setModalVisible] = useState(false);
@@ -118,7 +120,7 @@ export default function ChallengeScreen() {
 
     // Récupération initiale de la famille et état import
     useEffect(() => {
-        if (isTestEnv) {
+        if (isTestEnvRef.current) {
             // Dans les tests: on mock les services, on charge immédiatement les données pour éviter les timeouts.
             (async () => {
                 try {
