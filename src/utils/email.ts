@@ -9,6 +9,6 @@
  * @returns true si l'email est au format standard, false sinon
  */
 export function isValidEmail(email: string): boolean {
-    // Expression régulière simple pour valider le format email
+    // Regex simple pas de backtracking catastrophique (Sonar S5852)
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
