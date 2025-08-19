@@ -14,6 +14,9 @@ import {
   coerceDefi,
   TITLE_MAX,
   DESC_MAX,
+  DURATION_MAX,
+  COINS_MAX,
+  AGE_MAX_VAL,
 } from "../src/utils/validationChallenge";
 
 const validForm = {
@@ -86,6 +89,64 @@ describe("utils/defiFormUtils", () => {
     const result = validateDefi(form);
     expect(result.ok).toBe(false);
     expect(result.errors.age_min).toContain("≤");
+  });
+
+  it("validateDefi détecte valeurs numériques dépassant les bornes max", () => {
+    const form = {
+      ...validForm,
+      duration_min: String(DURATION_MAX + 1),
+      points_default: String(COINS_MAX + 1),
+      age_min: String(AGE_MAX_VAL + 1),
+      age_max: String(AGE_MAX_VAL + 2),
+    };
+    const result = validateDefi(form);
+    expect(result.ok).toBe(false);
+    expect(result.errors.duration_min).toContain("Max");
+    expect(result.errors.points_default).toContain("Max");
+    expect(result.errors.age_min).toContain("Max");
+    expect(result.errors.age_max).toContain("Max");
+  });
+
+  it("validateDefi détecte formats numériques invalides", () => {
+    const form = {
+      ...validForm,
+      duration_min: "abc",
+      points_default: "-1",
+      age_min: "x",
+      age_max: "y",
+    };
+    const result = validateDefi(form);
+    expect(result.ok).toBe(false);
+    expect(result.errors.duration_min).toContain("invalide");
+    expect(result.errors.points_default).toContain("invalide");
+    expect(result.errors.age_min).toContain("invalide");
+    expect(result.errors.age_max).toContain("invalide");
+  });
+
+  it("validateDefi détecte champs requis multiples manquants", () => {
+    const form = {
+      ...validForm,
+      title: "",
+      category: "",
+      location: "",
+      photo_required: "",
+      description: "",
+    };
+    const result = validateDefi(form);
+    expect(result.ok).toBe(false);
+    expect(Object.keys(result.errors)).toEqual(
+      expect.arrayContaining(["title", "category", "location", "photo_required", "description"])
+    );
+  });
+
+  it("numericOnly retourne chaîne vide si input vide ou sans chiffres", () => {
+    expect(numericOnly("")).toBe("");
+    expect(numericOnly("abcXYZ")).toBe("");
+  });
+
+  it("isDefiFormReady false si champ rempli uniquement d'espaces", () => {
+    const form = { ...validForm, title: "   " };
+    expect(isDefiFormReady(form)).toBe(false);
   });
 
   /**
