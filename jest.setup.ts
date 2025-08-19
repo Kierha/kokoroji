@@ -1,0 +1,59 @@
+/* eslint-env jest */
+
+// Étend jest-native pour les matchers supplémentaires
+import "@testing-library/jest-native/extend-expect";
+// @ts-ignore - types optionnels non nécessaires dans le contexte de test
+import fetch from "node-fetch";
+
+// Sauvegarde des méthodes console originales (une seule fois)
+const originalWarn = console.warn;
+const originalError = console.error;
+
+// Filtrage des warnings bruyants pendant les tests
+console.warn = (msg?: any, ...args: any[]) => {
+  if (
+    typeof msg === "string" &&
+    (
+      msg.includes("The global process.env.EXPO_OS is not defined") || // Expo OS
+      msg.includes("You seem to update the state") ||                  // setState async
+      msg.includes("Warning: An update to")                           // Mises à jour inutiles
+    )
+  ) {
+    return;
+  }
+  originalWarn(msg, ...args);
+};
+
+// Filtrage de certaines erreurs connues non bloquantes
+console.error = (msg?: any, ...args: any[]) => {
+  if (typeof msg === "string") {
+    const suppress = [
+      // Dépréciations / RN bruit
+      "ViewPropTypes will be removed from React Native",
+      "componentWillReceiveProps has been renamed",
+      // Warnings React Testing Library / act()
+      "inside a test was not wrapped in act",
+      // Imports (services d'import Supabase volontairement mockés en échec)
+      "[Import Reward] Supabase error:",
+      "[Import Reward] ERROR:",
+      "[Import] Supabase error:",
+      "[Import] ERROR:" ,
+    ].some((fragment) => msg.includes(fragment));
+    if (suppress) return;
+  }
+  originalError(msg, ...args);
+};
+
+// Polyfill clearImmediate pour éviter l'erreur dans StatusBar
+if (typeof global.clearImmediate === "undefined") {
+  (global as any).clearImmediate = (id?: number) => clearTimeout(id);
+}
+if (typeof global.setImmediate === "undefined") {
+  (global as any).setImmediate = (fn: (...args: any[]) => void, ...args: any[]) =>
+    setTimeout(fn, 0, ...args);
+}
+
+// Mock global fetch si besoin (évite des erreurs en tests)
+if (typeof global.fetch === "undefined") {
+  (global as any).fetch = fetch;
+}
