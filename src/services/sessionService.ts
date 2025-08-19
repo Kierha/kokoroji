@@ -14,13 +14,14 @@ const safeJson = (v: unknown) => {
   }
 };
 
-async function getOne<T = any>(sql: string, params: any[] = []): Promise<T | undefined> {
+// Utilitaire interne générique (T explicite requis à l'appel) – pas de défaut any
+async function getOne<T>(sql: string, params: (string | number)[] = []): Promise<T | undefined> {
   const db = await getDatabaseAsync();
   const rows = await db.getAllAsync(sql, params);
   return (rows && rows[0]) as T | undefined;
 }
 
-async function getAll<T = any>(sql: string, params: any[] = []): Promise<T[]> {
+async function getAll<T>(sql: string, params: (string | number)[] = []): Promise<T[]> {
   const db = await getDatabaseAsync();
   const rows = await db.getAllAsync(sql, params);
   return (rows ?? []) as T[];
