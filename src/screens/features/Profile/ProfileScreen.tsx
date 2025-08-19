@@ -123,8 +123,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                         <FlatList
                             data={children}
                             numColumns={2}
-                            // Sonar S2245: suppression de Math.random() (clé instable). Fallback déterministe sur index.
-                            keyExtractor={(item, index) => item.id?.toString() ?? `child-${index}`}
+                            keyExtractor={(item, index) => item.id?.toString() ?? `child-${index}`} // 
                             renderItem={({ item }) => (
                                 <ChildCard
                                     avatar={item.avatar}
