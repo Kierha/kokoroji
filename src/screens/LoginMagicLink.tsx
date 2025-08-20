@@ -12,18 +12,7 @@ import InputEmail from "../components/InputField";
 import ButtonPrimary from "../components/ButtonPrimary";
 import { colors } from "../styles/colors";
 import { sendMagicLink } from "../services/authService";
-// Sentry retiré: chargeur paresseux runtime (pas d'import littéral pour éviter résolution Metro si module supprimé)
-let SentryRef: any | undefined = undefined; // undefined = pas résolu, null = absent, objet = module
-function loadSentrySync() {
-    if (SentryRef !== undefined) return SentryRef;
-    try {
-        const dynReq = Function('m', 'return require(m);');
-        SentryRef = dynReq('sentry-expo');
-    } catch {
-        SentryRef = null;
-    }
-    return SentryRef;
-}
+import * as Sentry from 'sentry-expo';
 import { isValidEmail } from "../utils/email";
 import { mapMagicLinkError } from "../utils/errorMessages";
 import KoroLogo from "../assets/kokoroji-simple.png";
@@ -76,14 +65,14 @@ const LoginMagicLink: React.FC<{ navigation: any }> = ({ navigation }) => {
                 setAttemptedEmails(list => {
                     const updated = [...list, email];
                     if (next === 3 && !reported) {
-                                                const S = loadSentrySync();
-                                                // @ts-ignore - démo: envoi d'un message métier avec contexte
-                                                S?.Native?.withScope?.((scope: any) => {
-                                                    scope.setLevel('warning');
-                                                    scope.setExtra('attempts', next);
-                                                    scope.setExtra('emails', updated); // TODO: retirer PII après démo
-                                                    S.Native.captureMessage('auth_invalid_email_attempts');
-                                                });
+                        // @ts-ignore utilisation API Native exposée par sentry-expo
+                        Sentry.Native?.withScope?.((scope: any) => {
+                            scope.setLevel('warning');
+                            scope.setExtra('attempts', next);
+                            scope.setExtra('emails', updated); // DEMO: inclut les 3 emails invalides (à retirer en prod)
+                            // @ts-ignore
+                            Sentry.Native.captureMessage('auth_invalid_email_attempts');
+                        });
                         setReported(true);
                     }
                     return updated;

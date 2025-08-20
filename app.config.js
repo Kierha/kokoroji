@@ -6,8 +6,7 @@ export default {
     orientation: "portrait",
     icon: "./src/assets/logo-kokoroji.png",
     userInterfaceStyle: "light",
-  // Toggle nouvelle architecture (Fabric/TurboModules) via variable d'env si besoin d'isoler un bug
-  newArchEnabled: (process.env.EXPO_PUBLIC_NEW_ARCH ?? 'true') !== 'false',
+    newArchEnabled: true,
     splash: {
       image: "./src/assets/kokoroji-simple.png",
       resizeMode: "contain",
@@ -40,6 +39,6 @@ export default {
         projectId: "4a120cfd-4230-4cb7-ade3-9de3b893f5ca",
       },
     },
-  plugins: ["expo-sqlite"],
+    plugins: ["expo-sqlite", "sentry-expo"],
   },
 };
