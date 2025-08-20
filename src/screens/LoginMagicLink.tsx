@@ -12,7 +12,18 @@ import InputEmail from "../components/InputField";
 import ButtonPrimary from "../components/ButtonPrimary";
 import { colors } from "../styles/colors";
 import { sendMagicLink } from "../services/authService";
-import * as Sentry from 'sentry-expo';
+// Sentry retiré: chargeur paresseux runtime (pas d'import littéral pour éviter résolution Metro si module supprimé)
+let SentryRef: any | undefined = undefined; // undefined = pas résolu, null = absent, objet = module
+function loadSentrySync() {
+    if (SentryRef !== undefined) return SentryRef;
+    try {
+        const dynReq = Function('m', 'return require(m);');
+        SentryRef = dynReq('sentry-expo');
+    } catch {
+        SentryRef = null;
+    }
+    return SentryRef;
+}
 import { isValidEmail } from "../utils/email";
 import { mapMagicLinkError } from "../utils/errorMessages";
 import KoroLogo from "../assets/kokoroji-simple.png";
@@ -65,13 +76,14 @@ const LoginMagicLink: React.FC<{ navigation: any }> = ({ navigation }) => {
                 setAttemptedEmails(list => {
                     const updated = [...list, email];
                     if (next === 3 && !reported) {
-                        // @ts-ignore - démo: envoi d'un message métier avec contexte
-                        Sentry.Native.withScope(scope => {
-                            scope.setLevel('warning');
-                            scope.setExtra('attempts', next);
-                            scope.setExtra('emails', updated); // PII à retirer après démo
-                            Sentry.Native.captureMessage('auth_invalid_email_attempts');
-                        });
+                                                const S = loadSentrySync();
+                                                // @ts-ignore - démo: envoi d'un message métier avec contexte
+                                                S?.Native?.withScope?.((scope: any) => {
+                                                    scope.setLevel('warning');
+                                                    scope.setExtra('attempts', next);
+                                                    scope.setExtra('emails', updated); // TODO: retirer PII après démo
+                                                    S.Native.captureMessage('auth_invalid_email_attempts');
+                                                });
                         setReported(true);
                     }
                     return updated;

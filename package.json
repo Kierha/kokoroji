@@ -2,7 +2,7 @@
   "name": "kokoroji-app",
   "version": "1.0.0",
   "main": "index.ts",
-  "type": "module",
+  "private": true,
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
@@ -14,7 +14,8 @@
     "test": "jest",
     "test:ci": "jest --ci --runInBand --coverage --detectOpenHandles",
     "test:dev": "dotenv -e .env.development -- jest",
-    "test:prod": "dotenv -e .env.production -- jest"
+    "test:prod": "dotenv -e .env.production -- jest",
+    "clean:cache": "powershell -Command \"Remove-Item -Recurse -Force node_modules,package-lock.json; if (Test-Path .expo) { Remove-Item -Recurse -Force .expo }; npm install; npx expo start -c\""
   },
   "dependencies": {
     "@expo/metro-runtime": "~5.0.4",
@@ -23,11 +24,13 @@
     "@react-navigation/native": "^7.1.14",
     "@react-navigation/native-stack": "^7.3.21",
     "@react-navigation/stack": "^7.4.4",
-    "@sentry/react-native": "~6.14.0",
     "@supabase/supabase-js": "^2.50.5",
     "date-fns": "^4.1.0",
-    "expo": "53.0.20",
+    "expo": "^53.0.20",
+    "expo-application": "~6.1.5",
+    "expo-constants": "~17.1.7",
     "expo-dev-client": "~5.2.4",
+    "expo-device": "~7.1.4",
     "expo-image-picker": "~16.1.4",
     "expo-media-library": "~17.1.7",
     "expo-sqlite": "~15.2.14",
@@ -36,11 +39,12 @@
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-native": "0.79.5",
+    "react-native-gesture-handler": "~2.24.0",
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.11.1",
+    "react-native-svg": "15.11.2",
     "react-native-vector-icons": "^10.3.0",
     "react-native-web": "^0.20.0",
-    "sentry-expo": "~7.0.0",
     "tslib": "^2.8.1"
   },
   "devDependencies": {
@@ -50,14 +54,15 @@
     "@testing-library/react-native": "^13.2.2",
     "@types/jest": "^30.0.0",
     "@types/react": "~19.0.10",
+    "@types/react-native": "^0.72.8",
     "@types/testing-library__react-hooks": "^3.4.1",
     "dotenv": "^17.2.0",
     "dotenv-cli": "^8.0.0",
     "eslint": "^9.31.0",
     "eslint-config-expo": "^9.2.0",
     "jest": "^29.7.0",
-    "jest-junit": "^16.0.0",
     "jest-expo": "^53.0.9",
+    "jest-junit": "^16.0.0",
     "react-test-renderer": "19.0.0",
     "typescript": "~5.8.3"
   },
@@ -68,7 +73,6 @@
       }
     }
   },
-  "private": true,
   "jest": {
     "preset": "jest-expo",
     "testEnvironment": "jsdom",

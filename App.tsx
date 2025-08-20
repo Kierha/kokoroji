@@ -7,7 +7,8 @@
  */
 
 import React, { useEffect, useState } from "react";
-import * as Sentry from 'sentry-expo';
+// Diagnostic temporaire pour vérifier l’accès aux helpers tslib (cause potentielle du __extends undefined)
+import * as _tslib from 'tslib';
 import { AuthProvider } from "./src/hooks/useAuth";
 import AppNavigator from "./src/navigation";
 import { initializeDatabase } from "./src/database/db";
@@ -23,13 +24,31 @@ import { checkAndPurgeLogs } from "./src/utils/purgeLogs";
  *
  * @returns JSX.Element - Composant principal de l’application.
  */
-// Initialisation Sentry (le plus tôt possible)
-Sentry.init({
-  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
-  environment: process.env.EXPO_PUBLIC_ENV || 'development',
-  enableInExpoDevelopment: true,
-  debug: false,
-});
+// Permet de désactiver Sentry rapidement pour isoler un crash (EXPO_PUBLIC_SENTRY_ENABLED=false)
+// Sentry temporairement retiré pour isoler le crash (__extends undefined)
+// (Réintégrer après identification de la cause)
+
+// Fallback de diagnostic : si aucun helper __extends n'existe, on en injecte un minimaliste.
+// Cela permet de confirmer qu'un module attendait que le helper soit déjà défini en global.
+if (typeof (globalThis as any).__extends !== 'function') {
+  (globalThis as any).__extends = function (d: any, b: any) {
+    Object.setPrototypeOf(d, b);
+  function __ (this: any) { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : ((__.prototype = b.prototype), new (__ as any)());
+  };
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.log('[diag] helper __extends injecté (fallback)');
+  }
+}
+
+if (__DEV__) {
+  // Affiche les clés exportées par tslib (doit contenir __extends, __assign, etc.)
+  // Si ce log ne s’affiche pas ou la liste est vide, c’est un problème de résolution de module.
+  // Ce log est temporaire et sera retiré une fois le démarrage stabilisé.
+  // eslint-disable-next-line no-console
+  console.log('[diag] tslib exports:', Object.keys(_tslib).slice(0, 8), '…');
+}
 
 export default function App() {
   const [dbReady, setDbReady] = useState(false);
