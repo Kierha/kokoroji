@@ -1,10 +1,8 @@
 module.exports = function (api) {
   api.cache(true);
   return {
-    presets: [
-      "babel-preset-expo",
-      "@babel/preset-typescript",
-      "@babel/preset-react"
-    ],
+    // "babel-preset-expo" inclut déjà TypeScript & React. Retirer les doublons évite des transformations multiples
+    // susceptibles de casser l’injection des helpers (ex: __extends via tslib).
+    presets: ["babel-preset-expo"],
   };
 };

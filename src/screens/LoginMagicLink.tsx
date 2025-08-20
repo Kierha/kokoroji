@@ -65,11 +65,12 @@ const LoginMagicLink: React.FC<{ navigation: any }> = ({ navigation }) => {
                 setAttemptedEmails(list => {
                     const updated = [...list, email];
                     if (next === 3 && !reported) {
-                        // @ts-ignore - démo: envoi d'un message métier avec contexte
-                        Sentry.Native.withScope(scope => {
+                        // @ts-ignore utilisation API Native exposée par sentry-expo
+                        Sentry.Native?.withScope?.((scope: any) => {
                             scope.setLevel('warning');
                             scope.setExtra('attempts', next);
-                            scope.setExtra('emails', updated); // PII à retirer après démo
+                            scope.setExtra('emails', updated); // DEMO: inclut les 3 emails invalides (à retirer en prod)
+                            // @ts-ignore
                             Sentry.Native.captureMessage('auth_invalid_email_attempts');
                         });
                         setReported(true);

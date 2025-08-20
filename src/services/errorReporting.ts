@@ -1,16 +1,15 @@
 import { addLog, LogType } from './logService';
-
-// Lazy require de sentry-expo pour éviter les problèmes de parsing ESM sous Jest.
-// On n'utilise pas d'import statique afin que les tests puissent fonctionner même sans transformer le module.
-let _sentry: any | null | undefined;
-function getSentry() {
+// Chargement paresseux pour éviter que Jest transpile le module ESM de sentry-expo
+// et éviter le crash de parsing. On ne chargera Sentry que si l’option sentry=true ET pas en environnement test.
+let _sentry: any | null | undefined = undefined; // undefined = pas résolu
+function getSentrySafe() {
+  if ((globalThis as any).jest) return null; // jamais sous Jest
   if (_sentry !== undefined) return _sentry;
   try {
-  // Chargement dynamique évitant l'import statique (Jest + ESM) et sans require direct (lint)
-  const dynamicRequire = Function('m', 'return require(m);');
-  _sentry = dynamicRequire('sentry-expo');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- import dynamique voulu pour éviter le coût et les problèmes Jest
+  _sentry = require('sentry-expo');
   } catch {
-    _sentry = null; // Module absent ou non chargeable dans l'environnement (tests)
+    _sentry = null;
   }
   return _sentry;
 }
@@ -58,19 +57,17 @@ export async function logAndMaybeReport(
     // Ignoré volontairement pour ne pas masquer l'erreur principale
   }
 
-  // Option Sentry
+  // Option Sentry (paresseux, hors tests)
   if (sentry) {
-    const S = getSentry();
+    const S = getSentrySafe();
     if (S) {
       try {
-        S?.Native?.withScope?.((scope: any) => {
+        S.Native?.withScope?.((scope: any) => {
           scope.setLevel(level);
-          scope.setContext('kokoroji', { context, ...(extra || {}) });
+            scope.setContext('kokoroji', { context, ...(extra || {}) });
           S.Native.captureException(err instanceof Error ? err : new Error(message));
         });
-      } catch {
-        // Ignoré (pas critique si Sentry échoue)
-      }
+      } catch { /* ignore */ }
     }
   }
 }

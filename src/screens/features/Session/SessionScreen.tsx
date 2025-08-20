@@ -220,7 +220,7 @@ export default function SessionScreen() {
         await writeSessionLog({ familyId, logType: "session", context: "open_config_bundle" });
     }, [familyId, hasActive]);
 
-    /** Termine la session courante depuis l’alerte guard. */
+    // Termine la session courante depuis l’alerte guard.
     const handleTerminateFromAlert = useCallback(async () => {
         try {
             if (activeSession?.id) {
@@ -234,12 +234,7 @@ export default function SessionScreen() {
         }
     }, [activeSession?.id, endActiveSession, refreshActive]);
 
-    /**
-     * Validation de la configuration de session.
-     * - Création session et mise à jour flag d’ouverture.
-     * - Proposition d’un défi (random) ou d’un bundle.
-     * - Navigation vers l’écran actif si éligible, sinon affichage d’un message.
-     */
+    // Validation de la configuration (ne crée la session que si défi(s) trouvé(s)).
     const onConfirmConfig = useCallback(
         async (cfg: SessionConfig) => {
             if (hasActive) {
@@ -247,30 +242,31 @@ export default function SessionScreen() {
                 return;
             }
             try {
-                const s = await ensureSession(cfg);
-                if (!s?.id) throw new Error("Session non initialisée");
-
-                await setOpenSessionId(Number(s.id));
-                await clearResumePromptState();
-                justStartedRef.current = true;
-
+                // Vérification préalable avant création de session.
                 if (cfg.type === "random") {
                     const pick = await proposeRandomDefi(cfg);
                     if (!pick) {
                         setNoEligibleVisible(true);
-                        justStartedRef.current = false;
                         return;
                     }
+                    const s = await ensureSession(cfg);
+                    if (!s?.id) throw new Error("Session non initialisée");
+                    await setOpenSessionId(Number(s.id));
+                    await clearResumePromptState();
+                    justStartedRef.current = true;
                     setConfigVisible(false);
                     navigation.navigate("ActiveSession");
                 } else {
-                    // Composition jusqu’à 12 défis (somme des durées ≤ cible)
                     const list = await proposeBundle(cfg, 12);
                     if (!list.length) {
                         setNoEligibleVisible(true);
-                        justStartedRef.current = false;
                         return;
                     }
+                    const s = await ensureSession(cfg);
+                    if (!s?.id) throw new Error("Session non initialisée");
+                    await setOpenSessionId(Number(s.id));
+                    await clearResumePromptState();
+                    justStartedRef.current = true;
                     setConfigVisible(false);
                     navigation.navigate("ActiveSession");
                 }
@@ -285,7 +281,7 @@ export default function SessionScreen() {
                 justStartedRef.current = false;
             }
         },
-        [ensureSession, proposeRandomDefi, proposeBundle, navigation, familyId, hasActive],
+        [hasActive, proposeRandomDefi, ensureSession, proposeBundle, familyId, navigation],
     );
 
     // Source unique pour l’historique (utilisé par HistoryModal)
@@ -428,7 +424,7 @@ export default function SessionScreen() {
                 title="Aucun défi disponible"
                 message={
                     "Aucun défi ne correspond à vos critères récents.\n" +
-                    "Astuce : essayez une durée plus longue, changez de lieu/catégorie ou attendez quelques jours."
+                    "Astuce : essayez une durée plus longue, changez de lieu/catégorie ou ajoutez vos propres défis customisé."
                 }
                 confirmLabel="Fermer"
                 onConfirm={() => setNoEligibleVisible(false)}
