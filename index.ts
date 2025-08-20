@@ -1,3 +1,6 @@
+// Pré-charge les helpers TypeScript puis initialise les gestures (ordre volontaire)
+import 'tslib';
+import 'react-native-gesture-handler';
 import { registerRootComponent } from 'expo';
 
 import App from './App';

@@ -1,6 +1,6 @@
-import expoFlat from "eslint-config-expo/flat.js";
+const expoFlat = require("eslint-config-expo/flat.js");
 
-export default [
+module.exports = [
   ...expoFlat,
   {
     files: [

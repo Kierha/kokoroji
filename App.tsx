@@ -23,13 +23,33 @@ import { checkAndPurgeLogs } from "./src/utils/purgeLogs";
  *
  * @returns JSX.Element - Composant principal de l’application.
  */
-// Initialisation Sentry (le plus tôt possible)
-Sentry.init({
-  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
-  environment: process.env.EXPO_PUBLIC_ENV || 'development',
-  enableInExpoDevelopment: true,
-  debug: false,
-});
+
+// Fallback de diagnostic : si aucun helper __extends n'existe, on en injecte un minimaliste.
+// Cela permet de confirmer qu'un module attendait que le helper soit déjà défini en global.
+if (typeof (globalThis as any).__extends !== 'function') {
+  (globalThis as any).__extends = function (d: any, b: any) {
+    Object.setPrototypeOf(d, b);
+    function __(this: any) { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : ((__.prototype = b.prototype), new (__ as any)());
+  };
+  if (__DEV__) {
+    console.log('[diag] helper __extends injecté (fallback)');
+  }
+}
+
+// Initialisation Sentry minimale (uniquement si variable DSN présente)
+if (!(globalThis as any).jest && process.env.EXPO_PUBLIC_SENTRY_DSN) {
+  try {
+    Sentry.init({
+      dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+      environment: process.env.EXPO_PUBLIC_ENV || 'development',
+      enableInExpoDevelopment: true,
+      debug: false,
+    });
+  } catch {
+    // ignore init failure
+  }
+}
 
 export default function App() {
   const [dbReady, setDbReady] = useState(false);
