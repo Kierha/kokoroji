@@ -61,14 +61,14 @@ export default function App() {
         setDbReady(true);
 
         // Log de debug (dev uniquement)
-        console.log("Base de données initialisée.");
+        if (__DEV__) console.log("Base de données initialisée.");
 
         // Purge journalière des logs anciens (30 jours)
         await checkAndPurgeLogs(30);
       } catch (err) {
-        // Log erreur (dev uniquement)
+        // Log erreur (utile pour diagnostiquer en production également)
         console.error("Erreur d'initialisation ou de purge BDD :", err);
-        // TODO : gestion d'erreur bloquante / page erreur éventuelle
+        // NOTE: Une page dédiée d'erreur utilisateur pourrait être ajoutée ultérieurement.
       }
     }
 
