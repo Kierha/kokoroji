@@ -775,7 +775,7 @@ export default function RewardsScreen() {
                             rewardId: selectReward.id,
                             cost: selectReward.cost,
                             childIds: selectedIds,
-                            actor: "parent", // TODO: relier à l'utilisateur courant s'il existe
+                            actor: "parent", // NOTE: pourrait être relié à l'utilisateur courant si un profil multi-acteurs est ajouté ultérieurement
                         });
 
                         await writeRewardLog({

@@ -133,7 +133,7 @@ export async function purgeOldLogs(days: number = 30): Promise<void> {
   const cutoffDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 
   await db.runAsync(`DELETE FROM app_logs WHERE timestamp < ?`, [cutoffDate]);
-  console.log(`[LOGS] Purge des logs avant le ${cutoffDate} effectuée.`);
+  if (__DEV__) console.log(`[LOGS] Purge des logs avant le ${cutoffDate} effectuée.`);
 }
 
 /**
