@@ -84,7 +84,7 @@ export default function HomeScreen() {
             (async () => {
                 const syncEnabled = await getSyncEnabled();
                 if (!syncEnabled) {
-                    console.log("[SYNC] Synchronisation automatique désactivée");
+                    if (__DEV__) console.log("[SYNC] Synchronisation automatique désactivée");
                     return;
                 }
 
@@ -96,26 +96,26 @@ export default function HomeScreen() {
                     const remaining = Math.ceil(
                         (60 * 60 * 1000 - (now - lastAutoSyncRef.current)) / 1000
                     );
-                    console.log(`[SYNC] Prochaine synchro automatique dans ${remaining} secondes`);
+                    if (__DEV__) console.log(`[SYNC] Prochaine synchro automatique dans ${remaining} secondes`);
                     return;
                 }
 
                 try {
                     const pending = await getPendingLogs();
-                    console.log("[SYNC] Logs en attente:", pending.length);
+                    if (__DEV__) console.log("[SYNC] Logs en attente:", pending.length);
 
                     if (pending.length > 0) {
-                        console.log("[SYNC] Début de la synchronisation automatique");
+                        if (__DEV__) console.log("[SYNC] Début de la synchronisation automatique");
                         setSyncInProgress(true);
                         await syncLogsToCloud();
                         lastAutoSyncRef.current = Date.now();
-                        console.log("[SYNC] Synchronisation automatique terminée");
+                        if (__DEV__) console.log("[SYNC] Synchronisation automatique terminée");
 
                         const newDate = new Date();
                         setLastSyncState(newDate);
                         await setLastSync(newDate);
                     } else {
-                        console.log("[SYNC] Pas de logs en attente, pas de synchro nécessaire");
+                        if (__DEV__) console.log("[SYNC] Pas de logs en attente, pas de synchro nécessaire");
                     }
                 } catch (error) {
                     console.warn("Erreur synchro auto:", error);
