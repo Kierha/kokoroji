@@ -26,7 +26,21 @@ export default {
       },
       edgeToEdgeEnabled: true,
       package: "com.korosphere.kokorojiapp",
+      intentFilters: [
+        {
+          action: "VIEW",
+          category: ["BROWSABLE", "DEFAULT"],
+          data: [
+            {
+              scheme: "kokoroji",
+              host: "auth",
+              pathPrefix: "/",
+            },
+          ],
+        },
+      ],
     },
+    scheme: "kokoroji",
     web: {
       favicon: "./src/assets/logo-kokoroji.png",
     },

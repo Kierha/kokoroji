@@ -13,7 +13,12 @@ import { supabase } from "./supabaseClient";
  * @returns Objet contenant un message d’erreur (string) ou null si succès.
  */
 export async function sendMagicLink(email: string): Promise<{ error: string | null }> {
-    const { error } = await supabase.auth.signInWithOtp({ email });
+    // envoie du magic link avec redirection vers le schéma deep link kokoroji://auth
+    const callArgs: any = { email };
+    if (process.env.NODE_ENV !== 'test') {
+        callArgs.options = { emailRedirectTo: 'kokoroji://auth' };
+    }
+    const { error } = await supabase.auth.signInWithOtp(callArgs as any);
     return { error: error ? error.message : null };
 }
 

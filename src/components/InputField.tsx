@@ -29,6 +29,7 @@ const InputField: React.FC<InputFieldProps> = ({
     placeholder = "",
     error,
     style,
+    placeholderTextColor = "#9fb1c8",
     ...props
 }) => {
     return (
@@ -42,6 +43,7 @@ const InputField: React.FC<InputFieldProps> = ({
                 value={value}
                 onChangeText={onChangeText}
                 placeholder={placeholder}
+                placeholderTextColor={placeholderTextColor}
                 // Les props custom du parent sont passées au champ natif
                 {...props}
             />
