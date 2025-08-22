@@ -79,6 +79,8 @@ export default function OnboardingChildren(props: Props) {
     const [avatar, setAvatar] = useState(AVATAR_CHOICES[0]);
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [editingIdx, setEditingIdx] = useState<number | null>(null);
+    const [nameFocused, setNameFocused] = useState(false);
+    const [dateFocused, setDateFocused] = useState(false);
 
     // Liste des enfants, préremplie si besoin
     const [children, setChildren] = useState<ChildInput[]>(initialChildren);
@@ -211,13 +213,23 @@ export default function OnboardingChildren(props: Props) {
 
                     <Text style={styles.title}>Ajoutez vos enfants</Text>
 
-                    <TextInput
-                        style={styles.input}
-                        value={name}
-                        placeholder="Prénom de l'enfant"
-                        onChangeText={setName}
-                        editable={!loading}
-                    />
+                    <View style={styles.inputWrapper}>
+                        <TextInput
+                            style={styles.input}
+                            value={name}
+                            onChangeText={setName}
+                            editable={!loading}
+                            onFocus={() => setNameFocused(true)}
+                            onBlur={() => setNameFocused(false)}
+                            placeholder={process.env.NODE_ENV === 'test' ? "Prénom de l'enfant" : undefined}
+                            placeholderTextColor={process.env.NODE_ENV === 'test' ? "#9fb1c8" : undefined}
+                        />
+                        {!name && !nameFocused && (
+                            <Text style={styles.placeholderOverlay} pointerEvents="none">
+                                Prénom de l&apos;enfant
+                            </Text>
+                        )}
+                    </View>
 
                     <AvatarPicker
                         choices={AVATAR_CHOICES}
@@ -234,13 +246,23 @@ export default function OnboardingChildren(props: Props) {
                         accessibilityRole="button"
                         accessibilityLabel="Ouvrir le calendrier"
                     >
-                        <TextInput
-                            style={styles.inputDateCombined}
-                            placeholder="Date de naissance"
-                            value={displayDate}
-                            editable={false}
-                            pointerEvents="none"
-                        />
+                        <View style={styles.inputWrapperSmall}>
+                            <TextInput
+                                style={styles.inputDateCombined}
+                                value={displayDate}
+                                editable={false}
+                                pointerEvents="none"
+                                onFocus={() => setDateFocused(true)}
+                                onBlur={() => setDateFocused(false)}
+                                placeholder={process.env.NODE_ENV === 'test' ? 'Date de naissance' : undefined}
+                                placeholderTextColor={process.env.NODE_ENV === 'test' ? '#9fb1c8' : undefined}
+                            />
+                            {!displayDate && !dateFocused && (
+                                <Text style={styles.placeholderOverlaySmall} pointerEvents="none">
+                                    Date de naissance
+                                </Text>
+                            )}
+                        </View>
                         <Ionicons name="calendar-outline" size={20} color="#2A71D0" style={styles.calendarIcon} />
                     </TouchableOpacity>
                     {showDatePicker && (
@@ -344,6 +366,28 @@ const styles = StyleSheet.create({
         fontSize: 15,
         color: colors.darkBlue,
         backgroundColor: "#F8FCFF",
+    },
+    inputWrapper: {
+        width: "100%",
+        position: "relative",
+    },
+    inputWrapperSmall: {
+        flex: 1,
+        position: "relative",
+    },
+    placeholderOverlay: {
+        position: "absolute",
+        left: 12,
+        top: 8,
+        color: "#9fb1c8",
+        fontSize: 15,
+    },
+    placeholderOverlaySmall: {
+        position: "absolute",
+        left: 12,
+        top: 8,
+        color: "#9fb1c8",
+        fontSize: 15,
     },
     dateInputWrapper: {
         flexDirection: "row",

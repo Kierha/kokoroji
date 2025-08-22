@@ -54,7 +54,6 @@ jest.mock("../src/services/settingsFlagsService", () => ({
     setLastSync: jest.fn(() => Promise.resolve()),
 }));
 
-
 beforeAll(() => {
     jest.spyOn(console, "log").mockImplementation(() => { });
     jest.spyOn(console, "error").mockImplementation(() => { });
@@ -82,18 +81,17 @@ describe("HomeScreen", () => {
     });
 
     it("affiche la somme des Koro-coins des enfants", async () => {
-        const { getByText } = render(<HomeScreen />);
-        // Simule des enfants avec des soldes
+        // Prépare le mock AVANT le render (appelé au montage puis au focus)
         const onboarding = require("../src/services/onboardingService");
-        (onboarding.getChildren as jest.Mock).mockResolvedValueOnce([
+        (onboarding.getChildren as jest.Mock).mockResolvedValue([
             { id: 10, familyId: 1, name: "Leo", birthdate: "2018-01-01", avatar: "🦊", korocoins: 12 },
             { id: 11, familyId: 1, name: "Mia", birthdate: "2016-05-02", avatar: "🐻", korocoins: 23 },
         ]);
-        // Forcer re-render déclenchant l'effet (astuce: attendre tick)
-        await act(async () => { await Promise.resolve(); });
-        await waitFor(() => {
-            expect(getByText("35")).toBeTruthy();
-        });
+
+        const { findByText } = render(<HomeScreen />);
+
+        // findByText intègre l'attente implicite le temps que familyId soit fixé + effets exécutés
+        expect(await findByText("35")).toBeTruthy();
     });
 
     /**

@@ -8,6 +8,8 @@
 
 import React, { useEffect, useState } from "react";
 import * as Sentry from 'sentry-expo';
+import * as Linking from 'expo-linking';
+import { supabase } from "./src/services/supabaseClient";
 import { AuthProvider } from "./src/hooks/useAuth";
 import AppNavigator from "./src/navigation";
 import { initializeDatabase } from "./src/database/db";
@@ -53,6 +55,50 @@ if (!(globalThis as any).jest && process.env.EXPO_PUBLIC_SENTRY_DSN) {
 
 export default function App() {
   const [dbReady, setDbReady] = useState(false);
+
+  // Hook pour gérer l'ouverture via magic link (deep link)
+  function useHandleMagicLink() {
+    useEffect(() => {
+      const handleUrl = async (url: string | null) => {
+        if (!url) return;
+
+        // Essaye le fragment (#...) puis la query (?...)
+        let paramsStr = url.split('#')[1] ?? "";
+        if (!paramsStr && url.includes('?')) paramsStr = url.split('?')[1] ?? "";
+
+        if (!paramsStr) return;
+
+        const params = new URLSearchParams(paramsStr);
+        const access_token = params.get('access_token');
+        const refresh_token = params.get('refresh_token');
+
+        if (access_token) {
+          try {
+            if (refresh_token) {
+              await supabase.auth.setSession({ access_token, refresh_token } as any);
+            } else {
+              await supabase.auth.setSession({ access_token } as any);
+            }
+          } catch (e) {
+            console.error('Erreur restauration session via magic link', e);
+          }
+        }
+      };
+
+
+      Linking.getInitialURL().then((initial: string | null) => handleUrl(initial)).catch(() => { });
+
+      const sub = Linking.addEventListener('url', (ev: { url: string }) => {
+        handleUrl(ev.url);
+      });
+
+      return () => {
+        try { sub.remove(); } catch { /* noop */ }
+      };
+    }, []);
+  }
+
+  useHandleMagicLink();
 
   useEffect(() => {
     async function init() {
