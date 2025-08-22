@@ -64,6 +64,18 @@ export default function HomeScreen() {
         })();
     }, []);
 
+    // Helper pour recalculer le total des korocoins famille (stable pour hooks)
+    const refreshTotalCoins = React.useCallback(async () => {
+        if (!familyId) return;
+        try {
+            const children = await getChildren(familyId);
+            const sum = (children ?? []).reduce((acc: number, c: any) => acc + (Number(c.korocoins) || 0), 0);
+            setTotalCoins(sum);
+        } catch (e) {
+            console.warn('[HomeScreen] Erreur rafraîchissement KoroCoins:', e);
+        }
+    }, [familyId]);
+
     // Charge/recalk total KoroCoins famille
     React.useEffect(() => {
         if (!familyId) return;
@@ -82,6 +94,8 @@ export default function HomeScreen() {
     useFocusEffect(
         React.useCallback(() => {
             (async () => {
+                // Met à jour le total des KoroCoins au focus (pour refléter modifications récentes)
+                await refreshTotalCoins();
                 const syncEnabled = await getSyncEnabled();
                 if (!syncEnabled) {
                     if (__DEV__) console.log("[SYNC] Synchronisation automatique désactivée");
@@ -109,6 +123,8 @@ export default function HomeScreen() {
                         setSyncInProgress(true);
                         await syncLogsToCloud();
                         lastAutoSyncRef.current = Date.now();
+                        // Après une synchro, rafraîchir aussi le total au cas où des opérations distantes ont modifié les soldes
+                        await refreshTotalCoins();
                         if (__DEV__) console.log("[SYNC] Synchronisation automatique terminée");
 
                         const newDate = new Date();
@@ -123,7 +139,7 @@ export default function HomeScreen() {
                     setSyncInProgress(false);
                 }
             })();
-        }, [])
+    }, [refreshTotalCoins])
     );
 
     const displayedName = formatName(parentName);

@@ -15,16 +15,16 @@ Développée dans le cadre du PFE (Bloc 2) du titre RNCP 39583, l’application 
 
 L’application adopte une approche **offline-first** : toutes les données sont stockées localement en SQLite.  
 ➡️ Bénéfices : **confidentialité** (données familiales non envoyées par défaut) + **résilience réseau** (usage même sans connexion).  
-Le chiffrement natif n’est pas activé actuellement, mais figure dans la feuille de route (sqlcipher/expo-sqlite-crypto en évaluation).  
+Le chiffrement natif n’est pas activé actuellement, mais figure dans la feuille de route (sqlcipher/expo-sqlite-crypto en évaluation).
 
 ---
 
 ## Fonctionnalités principales
 
-- **Sessions et rituels familiaux** : création et gestion de sessions parent–enfant (durée, participants, suivi historique).  
-- **Défis ludiques** : bibliothèque filtrée (âge, lieu, durée), création de défis personnalisés, suivi de complétion.  
-- **Système de récompenses** : attribution de Koro-Coins lors de la réussite de défis, consultation du solde, échange contre des récompenses.  
-- **Mémoires & souvenirs** : association de photos/vidéos aux sessions, stockage local des médias (pas d’upload cloud).  
+- **Sessions et rituels familiaux** : création et gestion de sessions parent–enfant (durée, participants, suivi historique).
+- **Défis ludiques** : bibliothèque filtrée (âge, lieu, durée), création de défis personnalisés, suivi de complétion.
+- **Système de récompenses** : attribution de Koro-Coins lors de la réussite de défis, consultation du solde, échange contre des récompenses.
+- **Mémoires & souvenirs** : association de photos/vidéos aux sessions, stockage local des médias (pas d’upload cloud).
 - **Logs & traçabilité** : journalisation structurée des événements métier + erreurs avec purge auto >30 jours.
 
 ---
@@ -34,7 +34,7 @@ Le chiffrement natif n’est pas activé actuellement, mais figure dans la feuil
 - **React Native (Expo, TypeScript)**
 - **Supabase** (backend, authentification, synchronisation partielle)
 - **SQLite** (stockage local – chiffrement prévu, lib en évaluation)
-- **Sentry (sentry-expo 7.2.0 épinglée)** : instrumentation minimale, crash Hermes précédent contourné via upgrade + fallback `__extends` (suppression planifiée) ; capture fonctionnelle démo après 3 emails invalides.  
+- **Sentry (sentry-expo 7.2.0 épinglée)** : instrumentation minimale, crash Hermes précédent contourné via upgrade + fallback `__extends` (suppression planifiée) ; capture fonctionnelle démo après 3 emails invalides.
 - **EAS Build** (build & déploiement mobile)
 - **CI/CD Azure DevOps** (tests, lint, build, SonarCloud)
 - **Tests unitaires avec Jest** (React Native Testing Library)
@@ -43,35 +43,50 @@ Le chiffrement natif n’est pas activé actuellement, mais figure dans la feuil
 
 ## Prérequis
 
-- Node.js >= 18.x  
-- Expo CLI (`npm install -g expo-cli`) ou usage via `npx`  
-- Un smartphone Android/iOS avec **Expo Go** installé  
-- (Optionnel) Compte Supabase  
+- Node.js >= 18.x
+- Expo CLI (`npm install -g expo-cli`) ou usage via `npx`
+- Un smartphone Android/iOS avec **Expo Go** installé
+- (Optionnel) Compte Supabase
 - (Optionnel) Android Studio ou Xcode pour tests émulateur/simulateur
+
+️️️➡️ IOS
+
+Le projet est configuré pour fonctionner avec Expo / EAS Build.
+
+Le build iOS local (simulateur) fonctionne correctement avec la configuration fournie.
+
+Pour générer un build de production sur la branche main, des identifiants Apple Developer (certificats, provisioning profiles, App Store Connect) sont requis.
+
+👉 Ces identifiants étant personnels et liés au compte de publication, ils ne sont pas inclus dans ce dépôt.
+Par conséquent, la génération d’un IPA/App Store Build depuis main ne peut être réalisée qu’avec les crédentials Apple du compte développeur rattaché au projet.
 
 ---
 
 ## Installation du projet
 
 1. **Cloner le dépôt**
+
    ```bash
    git clone https://github.com/<à_ajouter>/kokoroji-app.git
    cd kokoroji-app
    ```
 
 2. **Installer les dépendances**
+
    ```bash
    npm install
    ```
 
 3. **Configurer l’environnement**
    Créez un fichier `.env.development` (ou `.env.production`) à partir de l’exemple `.env.example` :
+
    ```env
    EXPO_PUBLIC_SUPABASE_URL=<url Supabase>
    EXPO_PUBLIC_SUPABASE_KEY=<clé API Supabase>
    EXPO_PUBLIC_SENTRY_DSN=<dsn optionnel>
    EXPO_PUBLIC_ENV=development
    ```
+
    > Aucune clé sensible n’est commitée dans le dépôt.
 
 4. **Lancer l’application en développement**
@@ -86,10 +101,10 @@ Le chiffrement natif n’est pas activé actuellement, mais figure dans la feuil
 
 ## Scripts utiles
 
-- `npm start` : démarre Expo en mode développement  
-- `npm run android` : lance sur émulateur Android  
-- `npm run ios` : lance sur simulateur iOS (Mac requis)  
-- `npm run test` : exécute les tests unitaires  
+- `npm start` : démarre Expo en mode développement
+- `npm run android` : lance sur émulateur Android
+- `npm run ios` : lance sur simulateur iOS (Mac requis)
+- `npm run test` : exécute les tests unitaires
 - `npm run lint` : vérifie la qualité du code
 
 ---
@@ -122,12 +137,12 @@ kokoroji-app/
 
 ## Synchronisation (état actuel)
 
-- **Partielle et opt-in**, limitée à la table `app_logs`.  
-- **Déclencheurs** : automatique (focus Home, max 1 fois/h si logs en attente) + manuel (depuis Settings).  
-- Logs non synchronisés envoyés en batch vers Supabase puis marqués localement.  
-- Purge auto des logs locaux >30j avant toute sync éventuelle.  
-- **Pattern réutilisable** : sélection `is_synced=0` → batch insert → marquage.  
-- **Infrastructure prête** pour extension aux autres entités (sessions, défis, récompenses, médias…).  
+- **Partielle et opt-in**, limitée à la table `app_logs`.
+- **Déclencheurs** : automatique (focus Home, max 1 fois/h si logs en attente) + manuel (depuis Settings).
+- Logs non synchronisés envoyés en batch vers Supabase puis marqués localement.
+- Purge auto des logs locaux >30j avant toute sync éventuelle.
+- **Pattern réutilisable** : sélection `is_synced=0` → batch insert → marquage.
+- **Infrastructure prête** pour extension aux autres entités (sessions, défis, récompenses, médias…).
 
 Feuille de route : extension progressive du mécanisme aux entités métier après validation de la robustesse sur les logs.
 
@@ -135,38 +150,38 @@ Feuille de route : extension progressive du mécanisme aux entités métier apr�
 
 ## Bonnes pratiques & qualité
 
-- Logs structurés `{timestamp, type, niveau, contexte, détails JSON}`.  
-- Séparation UI / logique métier (services).  
-- Convention de branches : `main`, `develop`, `feature/<fonctionnalité>`.  
-- Commits unitaires et descriptifs.  
-- Respect ESLint (flat config).  
-- Tests unitaires automatisés.  
+- Logs structurés `{timestamp, type, niveau, contexte, détails JSON}`.
+- Séparation UI / logique métier (services).
+- Convention de branches : `main`, `develop`, `feature/<fonctionnalité>`.
+- Commits unitaires et descriptifs.
+- Respect ESLint (flat config).
+- Tests unitaires automatisés.
 - Indicateurs qualité intégrés à la CI/CD (SonarCloud, lint, coverage). Snapshot du 20/08/2025 : couverture ~56 %, duplications 1,7 %, 0 vulnérabilités.  
-➡️ Capture détaillée intégrée au dossier Bloc 2.
+  ➡️ Capture détaillée intégrée au dossier Bloc 2.
 
 ---
 
 ## Sécurité
 
-- Stockage local prioritaire (offline-first).  
-- Limites actuelles : DB non chiffrée, pas de sync active hors logs, bypass dev réservé au mode développement.  
-- Aucune donnée enfant envoyée sans activation sync.  
-- Emails invalides : capturés temporairement pour démo (suppression/hachage planifiée avant diffusion publique).  
-- Journalisation via Sentry (sentry-expo 7.2.0, instrumentation minimale).  
+- Stockage local prioritaire (offline-first).
+- Limites actuelles : DB non chiffrée, pas de sync active hors logs, bypass dev réservé au mode développement.
+- Aucune donnée enfant envoyée sans activation sync.
+- Emails invalides : capturés temporairement pour démo (suppression/hachage planifiée avant diffusion publique).
+- Journalisation via Sentry (sentry-expo 7.2.0, instrumentation minimale).
 
 ---
 
 ## Accessibilité
 
-- Objectif WCAG 2.1 AA : contraste, focus, tailles tactiles, feedback immédiat.  
-- Audit contrastes / navigation lecteur d’écran planifié (VoiceOver / TalkBack).  
+- Objectif WCAG 2.1 AA : contraste, focus, tailles tactiles, feedback immédiat.
+- Audit contrastes / navigation lecteur d’écran planifié (VoiceOver / TalkBack).
 
 ---
 
 ## Déploiement & CI/CD
 
-- Builds mobiles via **Expo EAS** (dev/staging/prod).  
-- Pipeline CI/CD avec Azure DevOps : tests, lint, expo-doctor, build, SonarCloud.  
+- Builds mobiles via **Expo EAS** (dev/staging/prod).
+- Pipeline CI/CD avec Azure DevOps : tests, lint, expo-doctor, build, SonarCloud.
 - Tableaux de bord qualité disponibles via SonarCloud.
 
 ---
@@ -174,28 +189,28 @@ Feuille de route : extension progressive du mécanisme aux entités métier apr�
 ## Feuille de route
 
 - **Court terme** :
-  - Finaliser couverture tests unitaires (>70 %).  
-  - Intégrer chiffrement SQLite (`sqlcipher`/`expo-sqlite-crypto`).  
-  - Étendre la synchronisation aux entités métier (sessions, défis, récompenses).  
-  - Retirer fallback `__extends` une fois Sentry stable sans lui.  
-  - Masquage/hachage PII dans événements Sentry.  
+  - Finaliser couverture tests unitaires (>70 %).
+  - Intégrer chiffrement SQLite (`sqlcipher`/`expo-sqlite-crypto`).
+  - Étendre la synchronisation aux entités métier (sessions, défis, récompenses).
+  - Retirer fallback `__extends` une fois Sentry stable sans lui.
+  - Masquage/hachage PII dans événements Sentry.
 - **Moyen terme** :
-  - Ajout de tests end-to-end.  
-  - Audit accessibilité complet (WCAG 2.1 AA).  
-  - Gestion multi-famille / multi-profil.  
+  - Ajout de tests end-to-end.
+  - Audit accessibilité complet (WCAG 2.1 AA).
+  - Gestion multi-famille / multi-profil.
 - **Long terme** :
-  - Supervision enrichie (dashboards, alertes en temps réel).  
-  - Internationalisation (français/anglais).  
-  - Publication en store (bêta fermée).  
+  - Supervision enrichie (dashboards, alertes en temps réel).
+  - Internationalisation (français/anglais).
+  - Publication en store (bêta fermée).
 
 ---
 
 ## Contribution & licence
 
 Le projet est développé dans le cadre d’un PFE individuel.  
-Suggestions/corrections étudiées mais seules les PR validées sont mergées.  
+Suggestions/corrections étudiées mais seules les PR validées sont mergées.
 
-Licence interne académique – non OSS.  
+Licence interne académique – non OSS.
 
 ---
 
